@@ -66,6 +66,14 @@ class Optimizer {
 
     }
 
+    restart() {
+
+        this.increaseWork = true;
+        this.currPriority = 0;
+        this.currTweak = 0;
+
+    }
+
     // begin the code block to optimize
     begin() {
 
@@ -181,7 +189,7 @@ class Optimizer {
     }
 
     // add a tweak function at the given priority
-    addTweak(tweak, priority) {
+    addTweak(tweak, priority = 0) {
 
         if (typeof tweak === 'function') {
 
