@@ -36,3 +36,8 @@ let workTime = 500;
 })();
 
 ```
+
+### TODO
+- Allow for a check after a certain number of run frames, accumulated time, or time since last check.
+- Allow for setting options directly on the optimizer object
+- Examples / tests
