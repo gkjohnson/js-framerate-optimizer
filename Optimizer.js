@@ -1,4 +1,21 @@
 export
+class Tweak {
+
+    constructor(func) {
+
+        if (func) this.optimize = func;
+
+    }
+
+    optimize() {
+
+        return true;
+
+    }
+
+}
+
+export
 class Optimizer {
 
     constructor(options) {
@@ -140,8 +157,7 @@ class Optimizer {
 
                 for (let i = 0; !done && i < tweaks.length; i++) {
 
-                    const tweakFunc = tweaks[this.this.currTweak];
-                    done = !!tweakFunc(delta);
+                    done = !!tweaks[this.this.currTweak].optimize(delta);
 
                     this.currTweak = (this.currTweak + 1) % tweaks.length;
 
@@ -165,11 +181,17 @@ class Optimizer {
     }
 
     // add a tweak function at the given priority
-    addTweak(tweakFunc, priority) {
+    addTweak(tweak, priority) {
+
+        if (typeof tweak === 'function') {
+
+            tweak = new Tweak(tweak);
+
+        }
 
         priority = parseInt(priority) || 0;
         this.tweaks[priority] = this.tweaks[priority] || [];
-        this.tweaks[priority].push(tweakFunc);
+        this.tweaks[priority].push(tweak);
 
         this.minPriority = Math.min(this.minPriority, priority);
         this.maxPriority = Math.max(this.maxPriority, priority);
