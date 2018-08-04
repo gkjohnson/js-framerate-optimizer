@@ -137,6 +137,10 @@ class Optimizer {
 
             }
 
+            this.lastCheck = window.performance.now();
+            this.elapsedFrames = 0;
+            this.elapsedTime = 0;
+
         }
 
     }
@@ -165,7 +169,7 @@ class Optimizer {
 
                 for (let i = 0; !done && i < tweaks.length; i++) {
 
-                    done = !!tweaks[this.this.currTweak].optimize(delta);
+                    done = !!tweaks[this.currTweak].optimize(delta);
 
                     this.currTweak = (this.currTweak + 1) % tweaks.length;
 
