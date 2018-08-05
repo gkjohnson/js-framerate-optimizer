@@ -1,7 +1,3 @@
-// TODO: Stop after an iteration of meeting the framerate so it doesn't unnecessarily fall (make option?)
-// TODO: Add a restart function to reoptimize again and climp
-// TODO: Add a max frame samples, elapsed time, and sampled time options
-
 export
 class Tweak {
 
@@ -22,6 +18,15 @@ class Tweak {
 export
 class Optimizer {
 
+    get enabled() {
+        return this._enabled;
+    }
+
+    set enabled(val) {
+        this._enabled = val;
+        this.resetCheck();
+    }
+
     constructor(options) {
 
         this.options = Object.assign({
@@ -33,10 +38,14 @@ class Optimizer {
 
             // how often to check performance
             interval: 500,
+            maxFrameSamples: Infinity,
 
             // how far outside the current framerate must be outside
             // the target to tweak
             margin: 0.05,
+
+            // TODO: Stop after unsuccessful iterations?
+            // TODO: Continually refine?
 
         }, options);
 
@@ -47,6 +56,8 @@ class Optimizer {
             delete this.options.targetFramerate;
 
         }
+
+        this._enabled = true;
 
         // the prioritized tweaks -- int -> array
         // It would be best if this were sorted linked list so
@@ -68,10 +79,32 @@ class Optimizer {
         this.currPriority = 0;
         this.currTweak = 0;
 
+        window._windowFocused = true;
+        this._windowBlurFunc = () => this.this._windowFocused = false;
+        this._windowFocusFunc = () => {
+
+            this.this._windowFocused = true;
+            this.resetCheck();
+
+        };
+        window.addEventListener('blur', this._windowBlurFunc);
+        window.addEventListener('focus', this._windowFocusFunc);
+
     }
 
+    dispose() {
+
+        this.removeEventListener('blur', this._windowBlurFunc);
+        this.removeEventListener('focus', this._windowFocusFunc);
+
+    }
+
+    /* Public API */
+    // restarts the optimization process by first improving quality then
+    // performance
     restart() {
 
+        this.resetCheck();
         this.increaseWork = true;
         this.currPriority = 0;
         this.currTweak = 0;
@@ -88,6 +121,9 @@ class Optimizer {
     // end the code block to optimize
     end() {
 
+        // if we're not active for any reason, continue
+        if (!this._enabled || !this._windowFocused || this.finished) return;
+
         // If we don't have a last check time, initialize it
         if (this.lastCheck === -1) this.lastCheck = window.performance.now();
 
@@ -99,6 +135,7 @@ class Optimizer {
             targetMillis,
             margin,
             interval,
+            maxFrameSamples,
         } = this.options;
 
         // increment the time and frames run
@@ -107,7 +144,7 @@ class Optimizer {
 
         // if we've waited for an appropriate amount of time
         const sinceLastCheck = window.performance.now() - this.lastCheck;
-        if (sinceLastCheck >= interval) {
+        if (sinceLastCheck >= interval || this.elapsedFrames >= maxFrameSamples) {
 
             // average time per frame and the differences
             const frameTime = this.elapsedTime / this.elapsedFrames;
@@ -130,7 +167,7 @@ class Optimizer {
 
                     // delta will always be ~0 when targeting 60 fps because the
                     // browser runs at a fixed framerate
-                    this.iterate(Math.max(delta, 1));
+                    this.finished = !this.iterate(Math.max(delta, 1));
 
                 }
 
@@ -160,6 +197,25 @@ class Optimizer {
 
     }
 
+    // add a tweak function at the given priority
+    addTweak(tweak, priority = 0) {
+
+        if (typeof tweak === 'function') {
+
+            tweak = new Tweak(tweak);
+
+        }
+
+        priority = parseInt(priority) || 0;
+        this.tweaks[priority] = this.tweaks[priority] || [];
+        this.tweaks[priority].push(tweak);
+
+        this.minPriority = Math.min(this.minPriority, priority);
+        this.maxPriority = Math.max(this.maxPriority, priority);
+
+    }
+
+    /* Private Functions */
     // Iterates over the tweaks based on the delta. Improving quality if delta > 0
     // and performance if delta < 0
     iterate(delta) {
@@ -196,23 +252,17 @@ class Optimizer {
 
         }
 
+        return done;
+
     }
 
-    // add a tweak function at the given priority
-    addTweak(tweak, priority = 0) {
+    // resets the current frame check
+    resetCheck() {
 
-        if (typeof tweak === 'function') {
-
-            tweak = new Tweak(tweak);
-
-        }
-
-        priority = parseInt(priority) || 0;
-        this.tweaks[priority] = this.tweaks[priority] || [];
-        this.tweaks[priority].push(tweak);
-
-        this.minPriority = Math.min(this.minPriority, priority);
-        this.maxPriority = Math.max(this.maxPriority, priority);
+        this.elapsedFrames = 0;
+        this.elapsedTime = 0;
+        this.beginTime = -1;
+        this.lastCheck = -1;
 
     }
 
