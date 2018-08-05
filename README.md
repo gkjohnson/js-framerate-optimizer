@@ -3,6 +3,8 @@
 # js-framerate-optimizer
 Library for tracking and iteratively improving framerate over time inspired by the [Babylon.SceneOptimizer](https://doc.babylonjs.com/how_to/how_to_use_sceneoptimizer).
 
+TODO: How it works
+
 ## Use
 
 ```js
@@ -83,6 +85,10 @@ Defaults to `false`.
 #### dispose()
 
 Removes window events that the optimizer listens for, including window `"blur"` and `"focus"`. It is expected that the optimizer is no longer used after this.
+
+#### enabled
+
+Getter and setter for enabling or disabling the optimizer. Elapsed time is reset on reenable.
 
 #### addTweak(tweak, priority = 0)
 
