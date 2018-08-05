@@ -3,11 +3,26 @@
     <head>
         <title></title>
 
+        <script src="//rawgit.com/mrdoob/stats.js/master/build/stats.min.js"></script>
+        <script src="//rawgit.com/dataarts/dat.gui/master/build/dat.gui.min.js"></script>
+
+        <link href="//rawgit.com/dataarts/dat.gui/master/build/dat.gui.css" rel="stylesheet"/>
+
     </head>
     <body>
 
         <script type="module">
             import { Optimizer } from '../Optimizer.js';
+
+            const params = {
+                workTime: 0
+            }
+
+            const stats = new Stats();
+            const gui = new dat.GUI();
+            gui.add(params, 'workTime', 0, 500);
+
+            document.body.appendChild(stats.dom);
 
             // wait for x milliseconds
             function wait(ms) {
@@ -21,21 +36,23 @@
             const optimizer = new Optimizer();
             optimizer.addTweak(delta => {
 
-                workTime += delta < 0 ? -1 : 1;
+                params.workTime += delta * 0.25;
 
-                console.log('Optimized workTime to ', workTime, 'ms');
+                console.log('Optimized workTime to ', params.workTime, 'ms');
+
+                gui.updateDisplay();
                 return true;
 
             });
 
             // work loop
-            let workTime = 100;
             (function loop(){
 
+                stats.update();
                 optimizer.update();
 
-                console.log(`waiting for ` + workTime);
-                wait(workTime);
+                console.log(`waiting for ` + params.workTime);
+                wait(params.workTime);
                 requestAnimationFrame(loop);
 
             })();

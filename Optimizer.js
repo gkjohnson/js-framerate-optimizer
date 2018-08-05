@@ -1,3 +1,7 @@
+// TODO: Stop after an iteration of meeting the framerate so it doesn't unnecessarily fall (make option?)
+// TODO: Add a restart function to reoptimize again and climp
+// TODO: Add a max frame samples, elapsed time, and sampled time options
+
 export
 class Tweak {
 
@@ -28,11 +32,11 @@ class Optimizer {
             targetFramerate: null,
 
             // how often to check performance
-            interval: 250,
+            interval: 500,
 
             // how far outside the current framerate must be outside
             // the target to tweak
-            margin: 0.025,
+            margin: 0.05,
 
         }, options);
 
@@ -124,7 +128,9 @@ class Optimizer {
 
                 } else {
 
-                    this.iterate(1);
+                    // delta will always be ~0 when targeting 60 fps because the
+                    // browser runs at a fixed framerate
+                    this.iterate(Math.max(delta, 1));
 
                 }
 
