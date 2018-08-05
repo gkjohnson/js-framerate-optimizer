@@ -125,7 +125,7 @@ function loop() {
 }
 ```
 
-#### restart(inscreaseWork = true)
+#### restart(increaseWork = true)
 
 Restarts optimization from the beginning. If `increaseWork === true` then it will start by trying to improve the quality of the page again.
 
