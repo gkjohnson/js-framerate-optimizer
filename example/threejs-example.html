@@ -1,0 +1,130 @@
+<! Doctype HTML>
+<html>
+    <head>
+        <title></title>
+
+        <script src="//rawgit.com/mrdoob/stats.js/master/build/stats.min.js"></script>
+        <script src="//rawgit.com/dataarts/dat.gui/master/build/dat.gui.min.js"></script>
+
+        <link href="//rawgit.com/dataarts/dat.gui/master/build/dat.gui.css" rel="stylesheet"/>
+
+        <style>
+            body {
+                overflow: hidden;
+                padding: 0;
+                margin:0;
+            }
+        </style>
+
+    </head>
+    <body>
+
+        <script type="module">
+            import { Optimizer } from '../Optimizer.js';
+            import * as THREE from '//rawgit.com/mrdoob/three.js/r94/build/three.module.js';
+
+            const params = {
+                resolution: 32
+            }
+
+            // THREE example from http://jsfiddle.net/theo/VsWb9/
+            var camera, scene, renderer, geometry, material, mesh;
+            var rt, rtscene, rtcam;
+
+            init();
+            animate();
+
+            function init() {
+
+                scene = new THREE.Scene();
+
+                camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
+                camera.position.z = 500;
+                scene.add(camera);
+
+                geometry = new THREE.BoxBufferGeometry(200, 200, 200);
+                material = new THREE.MeshNormalMaterial();
+
+                mesh = new THREE.Mesh(geometry, material);
+                scene.add(mesh);
+
+                renderer = new THREE.WebGLRenderer();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+
+                document.body.appendChild(renderer.domElement);
+
+
+                rt = new THREE.WebGLRenderTarget(256, 256, { });
+                rtscene = new THREE.Scene();
+
+                var mat = new THREE.MeshBasicMaterial({ map: rt.texture });
+                var quad = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), mat);
+
+                rtcam = new THREE.OrthographicCamera( - 1, 1, 1, - 1, 0, 1 );
+                rtscene.add(quad);
+
+            }
+
+            function animate() {
+
+                requestAnimationFrame(animate);
+                render();
+
+            }
+
+            function render() {
+
+            }
+
+            // optimize the work time until we reach the target framerate
+            const optimizer = new Optimizer({ continuallyRefine: false, interval: 250, margin: 0.01 });
+            optimizer.addTweak(delta => {
+
+                const ogres = params.resolution;
+                params.resolution = THREE.Math.floorPowerOfTwo(params.resolution);
+                params.resolution *= 2 ** Math.sign(delta);
+                params.resolution = Math.min(params.resolution, renderer.capabilities.maxTextureSize);
+                gui.updateDisplay();
+
+                // wait a little bit before resuming so the framerate settles after
+                // large changes
+                optimizer.enabled = false;
+                setTimeout(() => optimizer.enabled = true, 200);
+
+                return ogres !== params.resolution;
+
+            });
+            window.optimizer = optimizer;
+
+            const stats = new Stats();
+            const gui = new dat.GUI();
+            gui.add(params, 'resolution', 0, renderer.capabilities.maxTextureSize).onChange(() => optimizer.restart());
+
+            document.body.appendChild(stats.dom);
+
+            // initialize everything which can cause some temporary slowness
+            renderer.render(scene, camera, rt);
+            renderer.render(rtscene, rtcam);
+
+            // work loop
+            (function loop(){
+
+                stats.update();
+                optimizer.update();
+
+                rt.setSize(params.resolution, params.resolution);
+
+
+                mesh.rotation.x += 0.01;
+                mesh.rotation.y += 0.02;
+
+                renderer.render(scene, camera, rt);
+                renderer.render(rtscene, rtcam);
+
+                requestAnimationFrame(loop);
+
+            })();
+
+        </script>
+    </body>
+</html>

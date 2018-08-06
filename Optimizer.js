@@ -29,7 +29,7 @@ class Optimizer {
 
     constructor(options) {
 
-        this.options = Object.assign({
+        options = Object.assign({
 
             // target milliseconds to hit in the code enclosed by
             // the optimizer
@@ -37,7 +37,7 @@ class Optimizer {
             targetFramerate: null,
 
             // how often to check performance
-            interval: 1000,
+            interval: 500,
             maxFrameSamples: Infinity,
 
             // how far outside the current framerate must be outside
@@ -48,15 +48,26 @@ class Optimizer {
             // instead of just stopping after a single failed improvement.
             continuallyRefine: false,
 
+            // whether not we're currently increasing the amount of work
+            // done per frame (and thereby decreasing framerate)
+            increaseWork: true,
+
         }, options);
 
         // convert the specified framerate option to millis
-        if (this.options.targetFramerate > 0) {
+        if (options.targetFramerate > 0) {
 
-            this.options.targetMillis = 1000 / this.options.targetFramerate;
-            delete this.options.targetFramerate;
+            options.targetMillis = 1000 / options.targetFramerate;
+            delete options.targetFramerate;
 
         }
+
+        this.targetMillis = options.targetMillis;
+        this.interval = options.interval;
+        this.maxFrameSamples = options.maxFrameSamples;
+        this.margin = options.margin;
+        this.continuallyRefine = options.continuallyRefine;
+        this.increaseWork = options.increaseWork;
 
         this._enabled = true;
         this.completed = false;
@@ -74,10 +85,7 @@ class Optimizer {
         this.beginTime = -1;
         this.lastCheck = -1;
 
-        // The next tweak to try and whether not we're currently
-        // increasing the amount of work done per frame (and thereby
-        // decreasing framerate)
-        this.increaseWork = true;
+        // The next tweak to try
         this.currPriority = 0;
         this.currTweak = 0;
 
@@ -110,6 +118,7 @@ class Optimizer {
         this.increaseWork = increaseWork;
         this.currPriority = 0;
         this.currTweak = 0;
+        this.completed = false;
 
     }
 
@@ -132,28 +141,19 @@ class Optimizer {
         // If end is called before begin then skip this iteration
         if (this.beginTime === -1) return;
 
-        // pull out the options we need
-        const {
-            targetMillis,
-            margin,
-            interval,
-            maxFrameSamples,
-            continuallyRefine,
-        } = this.options;
-
         // increment the time and frames run
         this.elapsedTime += window.performance.now() - this.beginTime;
         this.elapsedFrames++;
 
         // if we've waited for an appropriate amount of time
         const sinceLastCheck = window.performance.now() - this.lastCheck;
-        if (sinceLastCheck >= interval || this.elapsedFrames >= maxFrameSamples) {
+        if (sinceLastCheck >= this.interval || this.elapsedFrames >= this.maxFrameSamples) {
 
             // average time per frame and the differences
             const frameTime = this.elapsedTime / this.elapsedFrames;
-            const delta = targetMillis - frameTime;
-            const ratio = delta / targetMillis;
-            const isOutsideMargin = Math.abs(ratio) > margin;
+            const delta = this.targetMillis - frameTime;
+            const ratio = delta / this.targetMillis;
+            const isOutsideMargin = Math.abs(ratio) > this.margin;
             const needsImproving = delta < 0 && isOutsideMargin;
 
             if (this.increaseWork) {
@@ -189,7 +189,7 @@ class Optimizer {
 
                 if (!didOptimize) {
 
-                    if (continuallyRefine) {
+                    if (this.continuallyRefine) {
 
                         this.increaseWork = true;
 

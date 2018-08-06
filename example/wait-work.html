@@ -33,7 +33,7 @@
             }
 
             // optimize the work time until we reach the target framerate
-            const optimizer = new Optimizer();
+            const optimizer = new Optimizer({ targetFramerate: 45, margin: 0 });
             optimizer.addTweak(delta => {
 
                 params.workTime += delta * 0.25;
