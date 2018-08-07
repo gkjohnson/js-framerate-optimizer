@@ -86,7 +86,7 @@ class Optimizer {
         this.lastCheck = -1;
 
         // The next tweak to try
-        this.currPriority = 0;
+        this.currPriority = null;
         this.currTweak = 0;
 
         this._windowFocused = true;
@@ -115,11 +115,11 @@ class Optimizer {
     restart(increaseWork = true) {
 
         this.resetCheck();
+
         this.increaseWork = increaseWork;
-        this.currPriority = 0;
+        this.currPriority = null;
         this.currTweak = 0;
         this.completed = false;
-
     }
 
     // begin the code block to optimize
@@ -158,6 +158,12 @@ class Optimizer {
 
             if (this.increaseWork) {
 
+                if (this.currPriority === null) {
+
+                    this.currPriority = this.minPriority;
+                
+                }
+
                 // If our frame time is higher than we want, then
                 // start trying to improve it.
                 if (needsImproving) {
@@ -178,6 +184,12 @@ class Optimizer {
 
             // Try to improve the frame time
             if (!this.increaseWork) {
+
+                if (this.currPriority === null) {
+
+                    this.currPriority = this.maxPriority;
+                
+                }
 
                 let didOptimize = false;
 
@@ -270,6 +282,7 @@ class Optimizer {
 
                 // Lower priority numbers are more important
                 this.currPriority += delta > 0 ? 1 : -1;
+                this.currTweak = 0;
 
             }
 
