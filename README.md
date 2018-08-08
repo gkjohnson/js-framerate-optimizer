@@ -144,8 +144,8 @@ The optimize function is called whenever an optimization should take place, eith
 The optimize function _must_ return `true` if the setting was optimized and 'false' if no optimization could occur, ie the setting being tweaked could not be turned down any further or is at the lowest acceptable setting.
 
 ## TODO
-- Add delayed / async tweaks so the optimizer can only continue after the tweak says to.
+- Add delayed / async tweaks so the optimizer can only continue after the tweak says to. (can be handled with enable disable before and after change)
 - Add "stable" option for expensive tweaks so they will only be run on the first pass. 
-- Allow for setting options directly on the optimizer object
 - Examples / tests
 - Normalize vocabulary (tweak, optimize, work, quality, performance)
+- Allow for option that only allows for continually optimzing _downward_ to improve framerate over time
