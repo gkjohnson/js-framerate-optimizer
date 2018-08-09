@@ -1,15 +1,46 @@
 export
 class Tweak {
 
-    constructor(func) {
+    optimize(delta) {
 
-        if (func) this.optimize = func;
+        return true;
 
     }
 
-    optimize() {
+}
 
-        return true;
+export
+class SimpleTeak extends Tweak {
+
+    canIncreaseWork() { return true; }
+    increaseWork(delta) { }
+
+    canDecreaseWork() { return true; }
+    decreaseWork(delta) { }
+
+    optimize(delta) {
+
+        if (delta < 0) {
+
+            if (this.canDecreaseWork()) {
+
+                this.decreaseWork(delta);
+                return true;
+
+            }
+
+        } else {
+
+            if (this.canIncreaseWork()) {
+
+                this.increaseWork(delta);
+                return true;
+
+            }
+
+        }
+
+        return false;
 
     }
 
@@ -112,7 +143,7 @@ class Optimizer {
     /* Public API */
     // restarts the optimization process by first improving quality then
     // performance
-    restart(increaseWork = true) {
+    restart(increaseWork = false) {
 
         this.resetCheck();
 
@@ -237,7 +268,9 @@ class Optimizer {
 
         if (typeof tweak === 'function') {
 
-            tweak = new Tweak(tweak);
+            const tweakFunc = tweak;
+            tweak = new Tweak();
+            tweak.optimize = tweakFunc;
 
         }
 
