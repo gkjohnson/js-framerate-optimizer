@@ -20,7 +20,7 @@ function wait(ms) {
 
 // optimize the work time until we reach the target framerate
 const optimizer = new Optimizer();
-optimizer.addTweak(delta => {
+optimizer.addOptimization(delta => {
 
     workTime += delta < 0 ? -1 : 1;
     return true;
@@ -76,9 +76,9 @@ Defaults to `0.05` or 5%.
 
 ##### options.continuallyRefine
 
-By default the optimizer will stop trying to optimize and tweak the page once the target framerate is hit or no more tweaks can run and will never try to improve quality of the page again after the first iteration.
+By default the optimizer will stop trying to optimize and optimization the page once the target framerate is hit or no more optimizations can run and will never try to improve quality of the page again after the first iteration.
 
-This option allows the optimizer to ping pong between improving performance and quality continually to keep a steady framerate. Note that this may not be a good option when using "expensive" tweaks that may stall the frame for a moment, like compiling shaders.
+This option allows the optimizer to ping pong between improving performance and quality continually to keep a steady framerate. Note that this may not be a good option when using "expensive" optimizations that may stall the frame for a moment, like compiling shaders.
 
 Defaults to `false`.
 
@@ -90,15 +90,15 @@ Removes window events that the optimizer listens for, including window `"blur"` 
 
 Getter and setter for enabling or disabling the optimizer. Elapsed time is reset on reenable.
 
-#### addTweak(tweak, priority = 0)
+#### addOptimization(optimization, priority = 0)
 
-Takes an instance of a `Tweak` (described below) and a priority by which to call the tweak. Tweaks are optimized iteratively until each priority level has been completely optimized then it will move to the next one. When improving quality the lowest priority level is started with to improve quality. The highest is started with when improving performance.
+Takes an instance of a `Optimization` (described below) and a priority by which to call the optimization. Optimizations are optimized iteratively until each priority level has been completely optimized then it will move to the next one. When improving quality the lowest priority level is started with to improve quality. The highest is started with when improving performance.
 
-Expensive but unnecessary work should be tweaked at a high priority level. Critical functionality should be tweaked at a low priority level.
+Expensive but unnecessary work should be optimized at a high priority level. Critical functionality should be optimized at a low priority level.
 
 #### begin() & end()
 
-`begin` an `end` are used to encapsulate the code block to be optimized. Any tweaks being used should affect the performance of the code within that code block.
+`begin` an `end` are used to encapsulate the code block to be optimized. Any optimizations being used should affect the performance of the code within that code block.
 
 ```js
 optimizer.begin();
@@ -131,7 +131,7 @@ Restarts optimization from the beginning. If `increaseWork === true` then it wil
 
 This should be called if something on the page changed significantly which might give more room for improvement, such as significanyl resizing the browser window with a WebGL app.
 
-### Tweak
+### Optimization
 
 #### constructor(optimizeFunction)
 
@@ -141,11 +141,10 @@ Takes a function to call in `optimize` below. This function must match the behav
 
 The optimize function is called whenever an optimization should take place, either to improve performance or quality. The `delta` argument is the amount of milliseconds difference between the target framerate and the current framerate. A negative value means that less work should be done to hit the target.
 
-The optimize function _must_ return `true` if the setting was optimized and 'false' if no optimization could occur, ie the setting being tweaked could not be turned down any further or is at the lowest acceptable setting.
+The optimize function _must_ return `true` if the setting was optimized and 'false' if no optimization could occur, ie the setting being optimized could not be turned down any further or is at the lowest acceptable setting.
 
 ## TODO
-- Add delayed / async tweaks so the optimizer can only continue after the tweak says to. (can be handled with enable disable before and after change)
-- Add "stable" option for expensive tweaks so they will only be run on the first pass. 
+- Add delayed / async optimizations so the optimizer can only continue after the optimization says to. (can be handled with enable disable before and after change)
 - Examples / tests
-- Normalize vocabulary (tweak, optimize, work, quality, performance)
+- Normalize vocabulary (work, quality, performance)
 - Allow for option that only allows for continually optimzing _downward_ to improve framerate over time
