@@ -78,7 +78,7 @@
 
             // optimize the work time until we reach the target framerate
             const optimizer = new Optimizer({ continuallyRefine: false, interval: 500, margin: 0.01, increaseWork: true });
-            optimizer.addOptimization(delta => {
+            optimizer.addOptimization((delta, opt) => {
 
                 const ogres = params.resolution;
 
@@ -98,8 +98,8 @@
 
                 // wait a little bit before resuming so the framerate settles after
                 // large changes
-                optimizer.enabled = false;
-                setTimeout(() => optimizer.enabled = true, 2000);
+                opt.enabled = false;
+                setTimeout(() => opt.enabled = true, 2000);
 
                 return ogres !== params.resolution;
 

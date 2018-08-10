@@ -147,11 +147,13 @@ This should be called if something on the page changed significantly which might
 
 An optimization base class for creating a reusable optimization to add to the `Optimizer`.
 
-#### optimize(delta)
+#### optimize(delta, optimizer)
 
 The optimize function is called whenever an optimization should take place, either to improve performance or quality. The `delta` argument is the amount of milliseconds difference between the target framerate and the current framerate. A negative value means that less work should be done to hit the target.
 
 The optimize function _must_ return `true` if the setting was optimized and 'false' if no optimization could occur, ie the setting being optimized could not be turned down any further or is at the lowest acceptable setting.
+
+The second argument `optimizer` is the optimizer that is running the optimization.
 
 ### SimpleOptimization
 

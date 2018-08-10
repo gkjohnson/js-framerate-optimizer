@@ -1,7 +1,7 @@
 export
 class Optimization {
 
-    optimize(delta) {
+    optimize(delta, optimizer) {
 
         return true;
 
@@ -198,8 +198,6 @@ class Optimizer {
             const isOutsideMargin = Math.abs(ratio) > this.margin;
             const needsImproving = delta < 0 && isOutsideMargin;
 
-            console.log("TIME", frameTime, delta)
-
             if (this._increasingWork) {
 
                 if (this.currPriority === null) {
@@ -312,7 +310,7 @@ class Optimizer {
 
                 for (let i = 0; !done && i < optimizations.length; i++) {
 
-                    done = optimizations[this.currOptimization].optimize(delta);
+                    done = optimizations[this.currOptimization].optimize(delta, this);
 
                     if (typeof done !== 'boolean') {
 
