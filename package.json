@@ -1,0 +1,35 @@
+{
+  "name": "framerate-optimizer",
+  "version": "0.0.1",
+  "description": "Library for tracking and iteratively improving framerate over time.",
+  "main": "Optimizer.js",
+  "keywords": [
+    "javascript",
+    "performance",
+    "process",
+    "browser",
+    "framerate",
+    "optimize",
+    "tweak",
+    "fps",
+    "iterative",
+    "quality",
+    "work"
+  ],
+  "files":[
+      "Optimizer.js"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gkjohnson/js-framerate-optimizer.git"
+  },
+  "author": "Garrett Johnson <garrett.kjohnson@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gkjohnson/js-framerate-optimizer/issues"
+  },
+  "homepage": "https://github.com/gkjohnson/js-framerate-optimizer#readme"
+}
