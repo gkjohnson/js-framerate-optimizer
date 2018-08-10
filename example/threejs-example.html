@@ -77,23 +77,38 @@
             }
 
             // optimize the work time until we reach the target framerate
-            const optimizer = new Optimizer({ continuallyRefine: false, interval: 250, margin: 0.01 });
-            optimizer.addTweak(delta => {
+            const optimizer = new Optimizer({ continuallyRefine: false, interval: 500, margin: 0.01, increaseWork: true });
+            optimizer.addOptimization(delta => {
 
                 const ogres = params.resolution;
-                params.resolution = THREE.Math.floorPowerOfTwo(params.resolution);
-                params.resolution *= 2 ** Math.sign(delta);
+
+                if (delta < 0) params.resolution = THREE.Math.floorPowerOfTwo(params.resolution);
+                if (delta > 0) params.resolution = THREE.Math.ceilPowerOfTwo(params.resolution);
+
                 params.resolution = Math.min(params.resolution, renderer.capabilities.maxTextureSize);
+
+                if (params.resolution === ogres) {
+
+                    params.resolution *= 2 ** Math.sign(delta);
+                    params.resolution = Math.min(params.resolution, renderer.capabilities.maxTextureSize);
+
+                }
+
                 gui.updateDisplay();
 
                 // wait a little bit before resuming so the framerate settles after
                 // large changes
                 optimizer.enabled = false;
-                setTimeout(() => optimizer.enabled = true, 200);
+                setTimeout(() => optimizer.enabled = true, 2000);
 
                 return ogres !== params.resolution;
 
             });
+
+            // skip the first few frames because they may be expensive when first initializing
+            // the THREE.js state
+            setTimeout(() => optimizer.restart(), 1000)
+
             window.optimizer = optimizer;
 
             const stats = new Stats();

@@ -50,12 +50,21 @@ export
 class Optimizer {
 
     get enabled() {
+
         return this._enabled;
+
     }
 
     set enabled(val) {
+
+        if (this._enabled !== val) {
+
+            this.resetCheck();
+
+        }
+
         this._enabled = val;
-        this.resetCheck();
+
     }
 
     constructor(options) {
@@ -189,6 +198,8 @@ class Optimizer {
             const isOutsideMargin = Math.abs(ratio) > this.margin;
             const needsImproving = delta < 0 && isOutsideMargin;
 
+            console.log("TIME", frameTime, delta)
+
             if (this._increasingWork) {
 
                 if (this.currPriority === null) {
@@ -303,7 +314,7 @@ class Optimizer {
 
                     done = optimizations[this.currOptimization].optimize(delta);
 
-                    if (done !== 'boolean') {
+                    if (typeof done !== 'boolean') {
 
                         done = !!done;
                         console.warn('Optimizer: Optimization function not returning a boolean value.');
