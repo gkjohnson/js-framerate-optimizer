@@ -159,7 +159,5 @@ Functions to increase or decrease work and optimize the frame if needed. These a
 
 
 ## TODO
-- Add delayed / async optimizations so the optimizer can only continue after the optimization says to. (can be handled with enable disable before and after change)
 - Examples / tests
-- Normalize vocabulary (work, quality, performance)
 - Allow for option that only allows for continually optimzing _downward_ to improve framerate over time
