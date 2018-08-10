@@ -41,7 +41,7 @@ let workTime = 500;
 
 ## How it Works
 
-TODO
+The optimizer tracks the amount of time spent between frames or between calls to `begin` and `end` and calculates the difference between the target amount of time to spend and the actual time spent on the last frame. After the specified amount of time has passed the average time spent is calculated and the framerate the amount of work is either increased or decreased depending on whether or not the time spent was above or below the target. The amount of work is adjusted by iteratively calling prioritized optimizations and sampling framerate until the target work time is met.
 
 ## API
 ### Optimizer
@@ -86,6 +86,12 @@ This option allows the optimizer to ping pong between improving performance and 
 
 Defaults to `false`.
 
+##### options.increaseWork
+
+Whether the optimizer should ever try to increase the amount of work done at the cost of framerate. After the quality improvements are made the optimizer tries to improve the framerate until the target framerate is met.
+
+Defaults to `false`.
+
 #### dispose()
 
 Removes window events that the optimizer listens for, including window `"blur"` and `"focus"`. It is expected that the optimizer is no longer used after this.
@@ -93,6 +99,10 @@ Removes window events that the optimizer listens for, including window `"blur"` 
 #### enabled
 
 Getter and setter for enabling or disabling the optimizer. Elapsed time is reset on reenable.
+
+#### completed
+
+Whether or not the optimizer has stopped iterating and sampling the framerate.
 
 #### addOptimization(optimization, priority = 0)
 
