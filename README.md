@@ -3,7 +3,7 @@
 # js-framerate-optimizer
 Library for tracking and iteratively improving framerate over time inspired by the [Babylon.SceneOptimizer](https://doc.babylonjs.com/how_to/how_to_use_sceneoptimizer).
 
-TODO: How it works
+The terms "increase work" and "decrease work" are synonymous with "improve quality" and "improve performance" respectively.
 
 ## Use
 
@@ -38,6 +38,10 @@ let workTime = 500;
 })();
 
 ```
+
+## How it Works
+
+TODO
 
 ## API
 ### Optimizer
@@ -117,31 +121,42 @@ optimizer.end();
 function loop() {
 
     optimizer.update();
-  
+
     // ... code to optimize
 
     requesAnimationFrame(loop);
-  
+
 }
 ```
 
-#### restart(increaseWork = true)
+#### restart()
 
-Restarts optimization from the beginning. If `increaseWork === true` then it will start by trying to improve the quality of the page again.
+Restarts optimization from the beginning.
 
 This should be called if something on the page changed significantly which might give more room for improvement, such as significanyl resizing the browser window with a WebGL app.
 
 ### Optimization
 
-#### constructor(optimizeFunction)
-
-Takes a function to call in `optimize` below. This function must match the behavior of the `optimize` function.
+An optimization base class for creating a reusable optimization to add to the `Optimizer`.
 
 #### optimize(delta)
 
 The optimize function is called whenever an optimization should take place, either to improve performance or quality. The `delta` argument is the amount of milliseconds difference between the target framerate and the current framerate. A negative value means that less work should be done to hit the target.
 
 The optimize function _must_ return `true` if the setting was optimized and 'false' if no optimization could occur, ie the setting being optimized could not be turned down any further or is at the lowest acceptable setting.
+
+### SimpleOptimization
+
+A extension of `Optimization` that abstracts some of the basic functionality needed to implement it.
+
+#### canIncreaseWork() / canDecreaseWork()
+
+Functions that should return true if the optimizer _can_ increase or decrease work. If they return true the associated optimization function will be called.
+
+#### increaseWork() / decreaseWork()
+
+Functions to increase or decrease work and optimize the frame if needed. These are called if the associated `canIncreaseWork` or `canDecreaseWork` return true.
+
 
 ## TODO
 - Add delayed / async optimizations so the optimizer can only continue after the optimization says to. (can be handled with enable disable before and after change)
