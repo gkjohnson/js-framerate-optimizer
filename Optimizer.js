@@ -10,7 +10,7 @@ class Tweak {
 }
 
 export
-class SimpleTeak extends Tweak {
+class SimpleTweak extends Tweak {
 
     canIncreaseWork() { return true; }
     increaseWork(delta) { }
@@ -151,6 +151,7 @@ class Optimizer {
         this.currPriority = null;
         this.currTweak = 0;
         this.completed = false;
+
     }
 
     // begin the code block to optimize
@@ -299,7 +300,14 @@ class Optimizer {
 
                 for (let i = 0; !done && i < tweaks.length; i++) {
 
-                    done = !!tweaks[this.currTweak].optimize(delta);
+                    done = tweaks[this.currTweak].optimize(delta);
+
+                    if (done !== 'boolean') {
+                        
+                        done = !!done;
+                        console.warn('Optimizer: Optimization function not returning a boolean value.');
+
+                    }
 
                     this.currTweak = (this.currTweak + 1) % tweaks.length;
 
