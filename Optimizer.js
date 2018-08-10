@@ -1,5 +1,5 @@
 export
-class Tweak {
+class Optimization {
 
     optimize(delta) {
 
@@ -10,7 +10,7 @@ class Tweak {
 }
 
 export
-class SimpleTweak extends Tweak {
+class SimpleOptimization extends Optimization {
 
     canIncreaseWork() { return true; }
     increaseWork(delta) { }
@@ -72,7 +72,7 @@ class Optimizer {
             maxFrameSamples: Infinity,
 
             // how far outside the current framerate must be outside
-            // the target to tweak
+            // the target to optimize
             margin: 0.05,
 
             // continue to improve quality and then performance over time
@@ -103,10 +103,10 @@ class Optimizer {
         this._enabled = true;
         this.completed = false;
 
-        // the prioritized tweaks -- int -> array
+        // the prioritized optimizations -- int : array
         // It would be best if this were sorted linked list so
         // large gaps don't cause unnecessary iteration
-        this.tweaks = {};
+        this.optimizations = {};
         this.minPriority = Infinity;
         this.maxPriority = -Infinity;
 
@@ -116,9 +116,9 @@ class Optimizer {
         this.beginTime = -1;
         this.lastCheck = -1;
 
-        // The next tweak to try
+        // The next optimization to try
         this.currPriority = null;
-        this.currTweak = 0;
+        this.currOptimization = 0;
 
         this._windowFocused = true;
         this._windowBlurFunc = () => this._windowFocused = false;
@@ -149,7 +149,7 @@ class Optimizer {
 
         this.increaseWork = increaseWork;
         this.currPriority = null;
-        this.currTweak = 0;
+        this.currOptimization = 0;
         this.completed = false;
 
     }
@@ -193,7 +193,7 @@ class Optimizer {
                 if (this.currPriority === null) {
 
                     this.currPriority = this.minPriority;
-                
+
                 }
 
                 // If our frame time is higher than we want, then
@@ -202,7 +202,7 @@ class Optimizer {
 
                     this.increaseWork = false;
                     this.currPriority = this.maxPriority;
-                    this.currTweak = 0;
+                    this.currOptimization = 0;
 
                 } else {
 
@@ -220,7 +220,7 @@ class Optimizer {
                 if (this.currPriority === null) {
 
                     this.currPriority = this.maxPriority;
-                
+
                 }
 
                 let didOptimize = false;
@@ -264,20 +264,20 @@ class Optimizer {
 
     }
 
-    // add a tweak function at the given priority
-    addTweak(tweak, priority = 0) {
+    // add a optimization function at the given priority
+    addOptimization(optimization, priority = 0) {
 
-        if (typeof tweak === 'function') {
+        if (typeof optimization === 'function') {
 
-            const tweakFunc = tweak;
-            tweak = new Tweak();
-            tweak.optimize = tweakFunc;
+            const optimizationFunc = optimization;
+            optimization = new Optimization();
+            optimization.optimize = optimizationFunc;
 
         }
 
         priority = parseInt(priority) || 0;
-        this.tweaks[priority] = this.tweaks[priority] || [];
-        this.tweaks[priority].push(tweak);
+        this.optimizations[priority] = this.optimizations[priority] || [];
+        this.optimizations[priority].push(optimization);
 
         this.minPriority = Math.min(this.minPriority, priority);
         this.maxPriority = Math.max(this.maxPriority, priority);
@@ -285,31 +285,31 @@ class Optimizer {
     }
 
     /* Private Functions */
-    // Iterates over the tweaks based on the delta. Improving quality if delta > 0
+    // Iterates over the optimizations based on the delta. Improving quality if delta > 0
     // and performance if delta < 0
     iterate(delta) {
 
         let done = false;
         while (this.currPriority <= this.maxPriority && this.currPriority >= this.minPriority) {
 
-            // search for a tweak we can perform to improve performance
-            // if we get through all tweaks without an improvement then
+            // search for a optimization we can perform to improve performance
+            // if we get through all optimizations without an improvement then
             // move on to the next priority level.
-            const tweaks = this.tweaks[this.currPriority];
-            if (tweaks) {
+            const optimizations = this.optimizations[this.currPriority];
+            if (optimizations) {
 
-                for (let i = 0; !done && i < tweaks.length; i++) {
+                for (let i = 0; !done && i < optimizations.length; i++) {
 
-                    done = tweaks[this.currTweak].optimize(delta);
+                    done = optimizations[this.currOptimization].optimize(delta);
 
                     if (done !== 'boolean') {
-                        
+
                         done = !!done;
                         console.warn('Optimizer: Optimization function not returning a boolean value.');
 
                     }
 
-                    this.currTweak = (this.currTweak + 1) % tweaks.length;
+                    this.currOptimization = (this.currOptimization + 1) % optimizations.length;
 
                 }
 
@@ -323,7 +323,7 @@ class Optimizer {
 
                 // Lower priority numbers are more important
                 this.currPriority += delta > 0 ? 1 : -1;
-                this.currTweak = 0;
+                this.currOptimization = 0;
 
             }
 
