@@ -1,5 +1,3 @@
-**Work in Progress**
-
 # js-framerate-optimizer
 Library for tracking and iteratively improving framerate over time inspired by the [Babylon.SceneOptimizer](https://doc.babylonjs.com/how_to/how_to_use_sceneoptimizer).
 
@@ -167,7 +165,3 @@ Functions that should return true if the optimizer _can_ increase or decrease wo
 
 Functions to increase or decrease work and optimize the frame if needed. These are called if the associated `canIncreaseWork` or `canDecreaseWork` return true.
 
-
-## TODO
-- Examples / tests
-- Allow for option that only allows for continually optimzing _downward_ to improve framerate over time
