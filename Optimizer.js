@@ -81,7 +81,7 @@ class Optimizer {
 
             // whether not we're currently increasing the amount of work
             // done per frame (and thereby decreasing framerate)
-            increaseWork: true,
+            increaseWork: false,
 
         }, options);
 
@@ -102,6 +102,7 @@ class Optimizer {
 
         this._enabled = true;
         this.completed = false;
+        this._increasingWork = this.increaseWork;
 
         // the prioritized optimizations -- int : array
         // It would be best if this were sorted linked list so
@@ -143,11 +144,11 @@ class Optimizer {
     /* Public API */
     // restarts the optimization process by first improving quality then
     // performance
-    restart(increaseWork = false) {
+    restart() {
 
         this.resetCheck();
 
-        this.increaseWork = increaseWork;
+        this._increasingWork = this.increaseWork;
         this.currPriority = null;
         this.currOptimization = 0;
         this.completed = false;
@@ -188,7 +189,7 @@ class Optimizer {
             const isOutsideMargin = Math.abs(ratio) > this.margin;
             const needsImproving = delta < 0 && isOutsideMargin;
 
-            if (this.increaseWork) {
+            if (this._increasingWork) {
 
                 if (this.currPriority === null) {
 
@@ -200,7 +201,7 @@ class Optimizer {
                 // start trying to improve it.
                 if (needsImproving) {
 
-                    this.increaseWork = false;
+                    this._increasingWork = false;
                     this.currPriority = this.maxPriority;
                     this.currOptimization = 0;
 
@@ -215,7 +216,7 @@ class Optimizer {
             }
 
             // Try to improve the frame time
-            if (!this.increaseWork) {
+            if (!this._increasingWork) {
 
                 if (this.currPriority === null) {
 
@@ -235,7 +236,7 @@ class Optimizer {
 
                     if (this.continuallyRefine) {
 
-                        this.increaseWork = true;
+                        this._increasingWork = true;
 
                     } else {
 
