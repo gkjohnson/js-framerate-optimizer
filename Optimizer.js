@@ -145,8 +145,8 @@ class Optimizer {
 
     dispose() {
 
-        this.removeEventListener('blur', this._windowBlurFunc);
-        this.removeEventListener('focus', this._windowFocusFunc);
+        window.removeEventListener('blur', this._windowBlurFunc);
+        window.removeEventListener('focus', this._windowFocusFunc);
 
     }
 
