@@ -122,6 +122,29 @@ describe('Optimizer', () => {
 
         });
 
+        it('should not change priorities if optimization continues to happen', () => {
+
+            let called1 = 0;
+            let called0 = 0;
+
+            optimizer.addOptimization(() => { called1++; return true; }, 1);
+            optimizer.addOptimization(() => { called0++; return true; }, 0);
+
+            while (true) {
+
+                if (called1 >= 10) break;
+
+                optimizer.begin();
+                wait(100);
+                optimizer.end();
+
+            }
+
+            expect(called1).toEqual(10);
+            expect(called0).toEqual(0);
+
+        });
+
     });
 
     describe('addOptimizer', () => {
@@ -181,6 +204,12 @@ describe('Optimizer', () => {
             expect(optimizer.maxPriority).toEqual(100);
 
         });
+
+    });
+
+    describe('options', () => {
+
+        // TODO
 
     });
 
