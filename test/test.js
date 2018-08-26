@@ -148,6 +148,50 @@ describe('Optimizer', () => {
 
     });
 
+    describe('restart', () => {
+
+        it('should restart the optimization', () => {
+
+            let called = 0;
+            optimizer.addOptimization(() => {
+
+                called++;
+                return false;
+
+            });
+
+            expect(optimizer.completed).toEqual(false);
+            while (true) {
+
+                if (optimizer.completed) break;
+
+                optimizer.begin();
+                wait(100);
+                optimizer.end();
+
+            }
+
+            expect(optimizer.completed).toEqual(true);
+            optimizer.restart();
+            expect(optimizer.completed).toEqual(false);
+
+            while (true) {
+
+                if (optimizer.completed) break;
+
+                optimizer.begin();
+                wait(100);
+                optimizer.end();
+
+            }
+
+            expect(optimizer.completed).toEqual(true);
+            expect(called).toEqual(2);
+
+        });
+
+    });
+
     describe('addOptimizer', () => {
 
         it('should add optimizations with a default priority of 0', () => {
