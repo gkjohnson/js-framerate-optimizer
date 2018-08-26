@@ -55,6 +55,7 @@ describe('Optimizer', () => {
                 const ratio = 1 - delta / expected;
                 expect(Math.abs(ratio)).toBeLessThan(0.025);
                 called = true;
+                return true;
 
             });
 
@@ -209,7 +210,187 @@ describe('Optimizer', () => {
 
     describe('options', () => {
 
-        // TODO
+        describe('targetMillis', () => {
+
+            it('should optimize to the target framerate', () => {
+
+                const optimizer = new Optimizer({ targetMillis: 1 });
+                let currWait = 16;
+
+                optimizer.addOptimization(delta => {
+                    currWait += Math.sign(delta);
+                    return true;
+                });
+
+                while (true) {
+
+                    if (optimizer.completed) break;
+
+                    optimizer.begin();
+                    wait(currWait);
+                    optimizer.end();
+
+                }
+
+                expect(currWait).toEqual(1);
+                optimizer.dispose();
+
+            });
+
+            it('should be derived from `targetFramerate` if provided', () => {
+
+                const optimizer = new Optimizer({ targetFramerate: 10 });
+                expect(optimizer.targetMillis).toEqual(100);
+                optimizer.dispose();
+
+            });
+
+            it('should prefer `targetFramerate`', () => {
+
+                const optimizer = new Optimizer({ targetFramerate: 10, targetMillis: 1 });
+                expect(optimizer.targetMillis).toEqual(100);
+                optimizer.dispose();
+
+            });
+
+        });
+
+        describe('maxFrameSamples', () => {
+
+            it('should cap the amount of frames before optimizing', () => {
+
+                const optimizer = new Optimizer({ maxFrameSamples: 1 });
+                let called = 0;
+                optimizer.addOptimization(() => {
+                    called++;
+                    return true;
+                });
+
+                for (let i = 0; i < 10; i++) {
+                    optimizer.begin();
+                    wait(50);
+                    optimizer.end();
+                }
+
+                expect(called).toEqual(10);
+
+            });
+
+        });
+
+        describe('interval', () => {
+
+            it('should cap the amount of frames before optimizing', () => {
+
+                const optimizer = new Optimizer({ interval: 100 });
+                let lastTime;
+                optimizer.addOptimization(() => {
+                    const delta = (getTime() - lastTime);
+                    expect(delta).toBeGreaterThan(100);
+                    expect(delta).toBeLessThan(121);
+
+                    lastTime = getTime();
+
+                    return true;
+                });
+
+                lastTime = getTime();
+                for (let i = 0; i < 10; i++) {
+                    optimizer.begin();
+                    wait(20);
+                    optimizer.end();
+                }
+
+            });
+
+        });
+
+        describe('margin', () => {
+
+            it.skip('should set how strict the timing must be to optimize', () => {});
+
+        });
+
+        describe('continuallyRefine', () => {
+
+            it.skip('should allow for continuous refining of framerate when `true`', () => {});
+
+        });
+
+        describe('increaseWork', () => {
+
+            it('should allow for increasing work to the framerate cap before lowering when `true`', () => {
+
+                const optimizer = new Optimizer({ increaseWork: true });
+                let time = 1;
+                let incCalled = 0;
+                let decCalled = 0;
+
+                optimizer.addOptimization(delta => {
+
+                    if (delta > 0) time += 20;
+                    else time -= 1;
+
+                    if (delta > 0) incCalled++;
+                    else decCalled++;
+
+                    return true;
+
+                });
+
+                while (true) {
+
+                    if (optimizer.completed) break;
+
+                    optimizer.begin();
+                    wait(time);
+                    optimizer.end();
+
+                }
+
+                expect(incCalled).toEqual(1);
+
+                // 4 or 5 are okay
+                expect(decCalled / 5).toBeGreaterThanOrEqual(0.8);
+                expect(decCalled / 5).toBeLessThanOrEqual(1);
+
+            });
+
+            it('should never increase when `false`', () => {
+
+                const optimizer = new Optimizer({ });
+                let time = 1;
+                let incCalled = 0;
+                let decCalled = 0;
+
+                optimizer.addOptimization(delta => {
+
+                    if (delta > 0) time += 20;
+                    else time -= 1;
+
+                    if (delta > 0) incCalled++;
+                    else decCalled++;
+
+                    return true;
+
+                });
+
+                while (true) {
+
+                    if (optimizer.completed) break;
+
+                    optimizer.begin();
+                    wait(time);
+                    optimizer.end();
+
+                }
+
+                expect(incCalled).toEqual(0);
+                expect(decCalled).toEqual(0);
+
+            });
+
+        });
 
     });
 
