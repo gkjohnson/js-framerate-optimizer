@@ -21,7 +21,8 @@
   ],
   "scripts": {
     "lint": "eslint *.js",
-    "test": "jest"
+    "test": "jest --coverage",
+    "coverage": "opn coverage/lcov-report/index.html"
   },
   "repository": {
     "type": "git",
