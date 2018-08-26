@@ -1,6 +1,6 @@
 {
   "name": "framerate-optimizer",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Library for tracking and iteratively improving framerate over time.",
   "main": "Optimizer.js",
   "keywords": [
