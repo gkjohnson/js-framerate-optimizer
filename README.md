@@ -1,4 +1,9 @@
 # js-framerate-optimizer
+
+[![npm version](https://img.shields.io/npm/v/framerate-optimizer.svg?style=flat-square)](https://www.npmjs.com/package/framerate-optimizer)
+[![travis build](https://img.shields.io/travis/gkjohnson/js-framerate-optimizer.svg?style=flat-square)](https://travis-ci.org/gkjohnson/js-framerate-optimizer)
+[![lgtm code quality](https://img.shields.io/lgtm/grade/javascript/g/gkjohnson/js-framerate-optimizer.svg?style=flat-square&label=code-quality)](https://lgtm.com/projects/g/gkjohnson/js-framerate-optimizer/)
+
 Library for tracking and iteratively improving framerate over time inspired by the [Babylon.SceneOptimizer](https://doc.babylonjs.com/how_to/how_to_use_sceneoptimizer).
 
 The terms "increase work" and "decrease work" are synonymous with "improve quality" and "improve performance" respectively.
