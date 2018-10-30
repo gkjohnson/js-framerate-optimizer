@@ -146,7 +146,8 @@ function loop() {
 
 Restarts optimization from the beginning.
 
-This should be called if something on the page changed significantly which might give more room for improvement, such as significanyl resizing the browser window with a WebGL app.
+This should be called if something on the page changed 
+icantly which might give more room for improvement, such as significantly resizing the browser window with a WebGL app.
 
 ### Optimization
 
