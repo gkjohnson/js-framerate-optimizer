@@ -360,6 +360,112 @@ describe('Optimizer', () => {
 
         });
 
+        describe('waitMillis', () => {
+
+            it('should not wait to optimize if 0', () => {
+
+                let calls = 0;
+                const optimizer = new Optimizer({ waitMillis: 0, interval: 10, targetFramerate: 100000 });
+                optimizer.addOptimization(() => {
+                    calls++;
+                    return true;
+                });
+
+                const start = new Date();
+                while (new Date() - start < 115) {
+                    optimizer.begin();
+                    wait(1);
+                    optimizer.end();
+                }
+
+                expect(calls).toBeGreaterThan(5);
+
+            });
+
+            it('should wait before trying to optimize', () => {
+
+                let calls = 0;
+                const optimizer = new Optimizer({ waitMillis: 100, interval: 10, targetFramerate: 100000 });
+                optimizer.addOptimization(() => {
+                    calls++;
+                    return true;
+                });
+
+                const start = new Date();
+                while (new Date() - start < 150) {
+                    optimizer.begin();
+                    wait(1);
+                    optimizer.end();
+                }
+
+                expect(calls).toEqual(1);
+
+            });
+
+            it('should wait between optimizations', () => {
+
+                let calls = 0;
+                const optimizer = new Optimizer({ waitMillis: 100, interval: 10, targetFramerate: 100000 });
+                optimizer.addOptimization(() => {
+                    calls++;
+                    return true;
+                });
+
+                const start = new Date();
+                while (new Date() - start < 250) {
+                    optimizer.begin();
+                    wait(1);
+                    optimizer.end();
+                }
+
+                expect(calls).toEqual(2);
+
+            });
+
+        });
+
+        describe('maxWaitFrames', () => {
+
+            it('should wait between optimizations', () => {
+
+                let calls = 0;
+                const optimizer = new Optimizer({ maxWaitFrames: 100, maxFrameSamples: 10, targetFramerate: 100000, waitMillis: Infinity, interval: Infinity });
+                optimizer.addOptimization(() => {
+                    calls++;
+                    return true;
+                });
+
+                for (let i = 0; i < 150; i++) {
+                    optimizer.begin();
+                    wait(1);
+                    optimizer.end();
+                }
+
+                expect(calls).toEqual(1);
+
+            });
+
+            it('should wait between optimizations', () => {
+
+                let calls = 0;
+                const optimizer = new Optimizer({ maxWaitFrames: 100, maxFrameSamples: 10, targetFramerate: 100000, waitMillis: Infinity, interval: Infinity });
+                optimizer.addOptimization(() => {
+                    calls++;
+                    return true;
+                });
+
+                for (let i = 0; i < 250; i++) {
+                    optimizer.begin();
+                    wait(1);
+                    optimizer.end();
+                }
+
+                expect(calls).toEqual(2);
+
+            });
+
+        });
+
         describe('margin', () => {
 
             it.skip('should set how strict the timing must be to optimize', () => {});

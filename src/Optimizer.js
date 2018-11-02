@@ -82,7 +82,7 @@ class Optimizer {
 
             // how long to wait between capturing frames
             waitMillis: 0,
-            waitFrames: Infinity,
+            maxWaitFrames: Infinity,
 
             // how far outside the current framerate must be outside
             // the target to optimize
@@ -125,7 +125,7 @@ class Optimizer {
         this.maxPriority = -Infinity;
 
         // Tracking the time between optimizations
-        this.waitedFrames = this.options.waitFrames;
+        this.waitedFrames = this.options.maxWaitFrames;
         this.waitedMillis = this.options.waitMillis;
         this.elapsedFrames = 0;
         this.elapsedTime = 0;
@@ -183,12 +183,6 @@ class Optimizer {
         // if we're not active for any reason, continue
         if (!this._enabled || !this._windowFocused || this.completed) return;
 
-        // If we don't have a last check time, initialize it
-        if (this.lastCheck === -1) this.lastCheck = window.performance.now();
-
-        // If end is called before begin then skip this iteration
-        if (this.beginTime === -1) return;
-
         // wait the required number of frames between calls
         const timeFromBegin = window.performance.now() - this.beginTime;
         if (this.waitedFrames !== 0 && this.waitedMillis !== 0) {
@@ -199,6 +193,12 @@ class Optimizer {
             this.waitedMillis = Math.max(this.waitedMillis, 0);
             return;
         }
+
+        // If we don't have a last check time, initialize it
+        if (this.lastCheck === -1) this.lastCheck = window.performance.now();
+
+        // If end is called before begin then skip this iteration
+        if (this.beginTime === -1) return;
 
         // increment the time and frames run
         this.elapsedTime += timeFromBegin;
@@ -277,7 +277,7 @@ class Optimizer {
             this.lastCheck = window.performance.now();
             this.elapsedFrames = 0;
             this.elapsedTime = 0;
-            this.waitedFrames = this.options.waitFrames;
+            this.waitedFrames = this.options.maxWaitFrames;
             this.waitedMillis = this.options.waitMillis;
 
         }
@@ -367,7 +367,7 @@ class Optimizer {
 
         this.elapsedFrames = 0;
         this.elapsedTime = 0;
-        this.waitedFrames = this.options.waitFrames;
+        this.waitedFrames = this.options.maxWaitFrames;
         this.waitedMillis = this.options.waitMillis;
         this.beginTime = -1;
         this.lastCheck = -1;

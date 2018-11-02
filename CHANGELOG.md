@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - UMD variant to umd folder
-- Add "waitMillis" and "waitFrames" options
+- Add "waitMillis" and "maxWaitFrames" options
 
 ## [0.0.2] - 2018-08-26
 ### Fixed
