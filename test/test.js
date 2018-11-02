@@ -284,7 +284,8 @@ describe('Optimizer', () => {
             it('should be derived from `targetFramerate` if provided', () => {
 
                 const optimizer = new Optimizer({ targetFramerate: 10 });
-                expect(optimizer.targetMillis).toEqual(100);
+                expect(optimizer.options.targetMillis).toEqual(100);
+                expect(optimizer.options.targetFramerate).toEqual(10);
                 optimizer.dispose();
 
             });
@@ -292,7 +293,17 @@ describe('Optimizer', () => {
             it('should prefer `targetFramerate`', () => {
 
                 const optimizer = new Optimizer({ targetFramerate: 10, targetMillis: 1 });
-                expect(optimizer.targetMillis).toEqual(100);
+                expect(optimizer.options.targetMillis).toEqual(100);
+                expect(optimizer.options.targetFramerate).toEqual(10);
+                optimizer.dispose();
+
+            });
+
+            it('should define `targetFramerate`', () => {
+
+                const optimizer = new Optimizer({ targetMillis: 20 });
+                expect(optimizer.options.targetMillis).toEqual(20);
+                expect(optimizer.options.targetFramerate).toEqual(50);
                 optimizer.dispose();
 
             });

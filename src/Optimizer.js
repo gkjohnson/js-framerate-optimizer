@@ -33,7 +33,7 @@ class SimpleOptimization extends Optimization {
 
             if (this.canIncreaseWork()) {
 
-                this.increaseWork(delta);
+                this.options.increaseWork(delta);
                 return true;
 
             }
@@ -106,21 +106,16 @@ class Optimizer {
 
         }
 
-        this.options = options;
+        Object.defineProperty(options, 'targetFramerate', {
+            get() { return 1000 / this.targetMillis; },
+            set(v) { this.targetMillis = 1000 / v; },
+        });
 
-        // TODO: Remove these and reference the options object
-        this.targetMillis = options.targetMillis;
-        this.interval = options.interval;
-        this.maxFrameSamples = options.maxFrameSamples;
-        this.waitMillis = options.waitMillis;
-        this.waitFrames = options.waitFrames;
-        this.margin = options.margin;
-        this.continuallyRefine = options.continuallyRefine;
-        this.increaseWork = options.increaseWork;
+        this.options = options;
 
         this._enabled = true;
         this.completed = false;
-        this._increasingWork = this.increaseWork;
+        this._increasingWork = this.options.increaseWork;
 
         // the prioritized optimizations -- int : array
         // It would be best if this were sorted linked list so
@@ -130,8 +125,8 @@ class Optimizer {
         this.maxPriority = -Infinity;
 
         // Tracking the time between optimizations
-        this.waitedFrames = this.waitFrames;
-        this.waitedMillis = this.waitMillis;
+        this.waitedFrames = this.options.waitFrames;
+        this.waitedMillis = this.options.waitMillis;
         this.elapsedFrames = 0;
         this.elapsedTime = 0;
         this.beginTime = -1;
@@ -168,7 +163,7 @@ class Optimizer {
 
         this.resetCheck();
 
-        this._increasingWork = this.increaseWork;
+        this._increasingWork = this.options.increaseWork;
         this.currPriority = null;
         this.currOptimization = 0;
         this.completed = false;
@@ -211,13 +206,13 @@ class Optimizer {
 
         // if we've waited for an appropriate amount of time
         const sinceLastCheck = window.performance.now() - this.lastCheck;
-        if (sinceLastCheck >= this.interval || this.elapsedFrames >= this.maxFrameSamples) {
+        if (sinceLastCheck >= this.options.interval || this.elapsedFrames >= this.options.maxFrameSamples) {
 
             // average time per frame and the differences
             const frameTime = this.elapsedTime / this.elapsedFrames;
-            const delta = this.targetMillis - frameTime;
-            const ratio = delta / this.targetMillis;
-            const isOutsideMargin = Math.abs(ratio) > this.margin;
+            const delta = this.options.targetMillis - frameTime;
+            const ratio = delta / this.options.targetMillis;
+            const isOutsideMargin = Math.abs(ratio) > this.options.margin;
             const needsImproving = delta < 0 && isOutsideMargin;
 
             if (this._increasingWork) {
@@ -265,7 +260,7 @@ class Optimizer {
 
                 if (!didOptimize) {
 
-                    if (this.continuallyRefine) {
+                    if (this.options.continuallyRefine) {
 
                         this._increasingWork = true;
 
@@ -282,8 +277,8 @@ class Optimizer {
             this.lastCheck = window.performance.now();
             this.elapsedFrames = 0;
             this.elapsedTime = 0;
-            this.waitedFrames = this.waitFrames;
-            this.waitedMillis = this.waitedMillis;
+            this.waitedFrames = this.options.waitFrames;
+            this.waitedMillis = this.options.waitMillis;
 
         }
 
@@ -372,8 +367,8 @@ class Optimizer {
 
         this.elapsedFrames = 0;
         this.elapsedTime = 0;
-        this.waitedFrames = this.waitFrames;
-        this.waitedMillis = this.waitedMillis;
+        this.waitedFrames = this.options.waitFrames;
+        this.waitedMillis = this.options.waitMillis;
         this.beginTime = -1;
         this.lastCheck = -1;
 
