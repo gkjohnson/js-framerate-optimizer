@@ -51,6 +51,8 @@ The optimizer tracks the amount of time spent between frames or between calls to
 
 #### constructor(options)
 
+All options can be accessed and modified on `Optimizer.options`.
+
 ##### options.targetMillis
 
 The target milliseconds to hit in the enclosed code block. This cannot be _less_ than `16.66...` because browser caps the framerate to 60 frames per second. If this is less than that the optimizer will continually decrease quality to try to get performance up.
@@ -74,6 +76,18 @@ Defaults to `500` or half a second.
 At most how many frames can run before an optimization should occur. This is useful when code may not run consistently but runs as needed, meaning that checking after a fixed amount of time might mean that an inconsistent or no actual iterations has occurred. `Interval` should probably be set to `Infinity` in this case.
 
 Defaults to `Infinity`.
+
+##### options.waitMillis
+
+The amount of time to wait between sampling frames for a new optimization. This is useful when an optimization may cause the framerate to drop for a frame or two -- such as with allocating a lot of new memory or new webgl render targets.
+
+Defaults to `0`;
+
+##### options.maxWaitFrames
+
+At most how many frames to wait for.
+
+Defaults to `Infinity`;
 
 ##### options.margin
 
@@ -146,7 +160,7 @@ function loop() {
 
 Restarts optimization from the beginning.
 
-This should be called if something on the page changed 
+This should be called if something on the page changed
 icantly which might give more room for improvement, such as significantly resizing the browser window with a WebGL app.
 
 ### Optimization
