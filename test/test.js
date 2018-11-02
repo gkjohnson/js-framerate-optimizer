@@ -426,7 +426,7 @@ describe('Optimizer', () => {
 
         describe('maxWaitFrames', () => {
 
-            it('should wait between optimizations', () => {
+            it('should wait before starting', () => {
 
                 let calls = 0;
                 const optimizer = new Optimizer({ maxWaitFrames: 100, maxFrameSamples: 10, targetFramerate: 100000, waitMillis: Infinity, interval: Infinity });

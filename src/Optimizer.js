@@ -82,7 +82,7 @@ class Optimizer {
 
             // how long to wait between capturing frames
             waitMillis: 0,
-            maxwaitFrames: Infinity,
+            maxWaitFrames: Infinity,
 
             // how far outside the current framerate must be outside
             // the target to optimize
@@ -125,7 +125,7 @@ class Optimizer {
         this.maxPriority = -Infinity;
 
         // Tracking the time between optimizations
-        this.waitedFrames = this.options.maxwaitFrames;
+        this.waitedFrames = this.options.maxWaitFrames;
         this.waitedMillis = this.options.waitMillis;
         this.elapsedFrames = 0;
         this.elapsedTime = 0;
@@ -277,7 +277,7 @@ class Optimizer {
             this.lastCheck = window.performance.now();
             this.elapsedFrames = 0;
             this.elapsedTime = 0;
-            this.waitedFrames = this.options.maxwaitFrames;
+            this.waitedFrames = this.options.maxWaitFrames;
             this.waitedMillis = this.options.waitMillis;
 
         }
@@ -367,7 +367,7 @@ class Optimizer {
 
         this.elapsedFrames = 0;
         this.elapsedTime = 0;
-        this.waitedFrames = this.options.maxwaitFrames;
+        this.waitedFrames = this.options.maxWaitFrames;
         this.waitedMillis = this.options.waitMillis;
         this.beginTime = -1;
         this.lastCheck = -1;
