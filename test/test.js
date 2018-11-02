@@ -1,7 +1,7 @@
 /* global
     describe it beforeEach afterEach expect
 */
-import { Optimizer, SimpleOptimization } from '../Optimizer.js';
+import { Optimizer, SimpleOptimization } from '../src/Optimizer.js';
 
 class DummyOptimization extends SimpleOptimization {
 
