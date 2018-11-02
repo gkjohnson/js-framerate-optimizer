@@ -37,7 +37,7 @@
 
                 if (this.canIncreaseWork()) {
 
-                    this.increaseWork(delta);
+                    this.options.increaseWork(delta);
                     return true;
 
                 }
@@ -85,7 +85,7 @@
 
                 // how long to wait between capturing frames
                 waitMillis: 0,
-                waitFrames: Infinity,
+                maxwaitFrames: Infinity,
 
                 // how far outside the current framerate must be outside
                 // the target to optimize
@@ -109,21 +109,16 @@
 
             }
 
-            this.options = options;
+            Object.defineProperty(options, 'targetFramerate', {
+                get() { return 1000 / this.targetMillis; },
+                set(v) { this.targetMillis = 1000 / v; },
+            });
 
-            // TODO: Remove these and reference the options object
-            this.targetMillis = options.targetMillis;
-            this.interval = options.interval;
-            this.maxFrameSamples = options.maxFrameSamples;
-            this.waitMillis = options.waitMillis;
-            this.waitFrames = options.waitFrames;
-            this.margin = options.margin;
-            this.continuallyRefine = options.continuallyRefine;
-            this.increaseWork = options.increaseWork;
+            this.options = options;
 
             this._enabled = true;
             this.completed = false;
-            this._increasingWork = this.increaseWork;
+            this._increasingWork = this.options.increaseWork;
 
             // the prioritized optimizations -- int : array
             // It would be best if this were sorted linked list so
@@ -133,8 +128,8 @@
             this.maxPriority = -Infinity;
 
             // Tracking the time between optimizations
-            this.waitedFrames = this.waitFrames;
-            this.waitedMillis = this.waitMillis;
+            this.waitedFrames = this.options.maxwaitFrames;
+            this.waitedMillis = this.options.waitMillis;
             this.elapsedFrames = 0;
             this.elapsedTime = 0;
             this.beginTime = -1;
@@ -171,7 +166,7 @@
 
             this.resetCheck();
 
-            this._increasingWork = this.increaseWork;
+            this._increasingWork = this.options.increaseWork;
             this.currPriority = null;
             this.currOptimization = 0;
             this.completed = false;
@@ -191,12 +186,6 @@
             // if we're not active for any reason, continue
             if (!this._enabled || !this._windowFocused || this.completed) return;
 
-            // If we don't have a last check time, initialize it
-            if (this.lastCheck === -1) this.lastCheck = window.performance.now();
-
-            // If end is called before begin then skip this iteration
-            if (this.beginTime === -1) return;
-
             // wait the required number of frames between calls
             const timeFromBegin = window.performance.now() - this.beginTime;
             if (this.waitedFrames !== 0 && this.waitedMillis !== 0) {
@@ -208,19 +197,25 @@
                 return;
             }
 
+            // If we don't have a last check time, initialize it
+            if (this.lastCheck === -1) this.lastCheck = window.performance.now();
+
+            // If end is called before begin then skip this iteration
+            if (this.beginTime === -1) return;
+
             // increment the time and frames run
             this.elapsedTime += timeFromBegin;
             this.elapsedFrames++;
 
             // if we've waited for an appropriate amount of time
             const sinceLastCheck = window.performance.now() - this.lastCheck;
-            if (sinceLastCheck >= this.interval || this.elapsedFrames >= this.maxFrameSamples) {
+            if (sinceLastCheck >= this.options.interval || this.elapsedFrames >= this.options.maxFrameSamples) {
 
                 // average time per frame and the differences
                 const frameTime = this.elapsedTime / this.elapsedFrames;
-                const delta = this.targetMillis - frameTime;
-                const ratio = delta / this.targetMillis;
-                const isOutsideMargin = Math.abs(ratio) > this.margin;
+                const delta = this.options.targetMillis - frameTime;
+                const ratio = delta / this.options.targetMillis;
+                const isOutsideMargin = Math.abs(ratio) > this.options.margin;
                 const needsImproving = delta < 0 && isOutsideMargin;
 
                 if (this._increasingWork) {
@@ -268,7 +263,7 @@
 
                     if (!didOptimize) {
 
-                        if (this.continuallyRefine) {
+                        if (this.options.continuallyRefine) {
 
                             this._increasingWork = true;
 
@@ -285,8 +280,8 @@
                 this.lastCheck = window.performance.now();
                 this.elapsedFrames = 0;
                 this.elapsedTime = 0;
-                this.waitedFrames = this.waitFrames;
-                this.waitedMillis = this.waitedMillis;
+                this.waitedFrames = this.options.maxwaitFrames;
+                this.waitedMillis = this.options.waitMillis;
 
             }
 
@@ -375,8 +370,8 @@
 
             this.elapsedFrames = 0;
             this.elapsedTime = 0;
-            this.waitedFrames = this.waitFrames;
-            this.waitedMillis = this.waitedMillis;
+            this.waitedFrames = this.options.maxwaitFrames;
+            this.waitedMillis = this.options.waitMillis;
             this.beginTime = -1;
             this.lastCheck = -1;
 
