@@ -80,6 +80,10 @@ class Optimizer {
             interval: 500,
             maxFrameSamples: Infinity,
 
+            // how long to wait between capturing frames
+            waitMillis: 0,
+            waitFrames: Infinity,
+
             // how far outside the current framerate must be outside
             // the target to optimize
             margin: 0.05,
@@ -102,9 +106,14 @@ class Optimizer {
 
         }
 
+        this.options = options;
+
+        // TODO: Remove these and reference the options object
         this.targetMillis = options.targetMillis;
         this.interval = options.interval;
         this.maxFrameSamples = options.maxFrameSamples;
+        this.waitMillis = options.waitMillis;
+        this.waitFrames = options.waitFrames;
         this.margin = options.margin;
         this.continuallyRefine = options.continuallyRefine;
         this.increaseWork = options.increaseWork;
@@ -121,6 +130,8 @@ class Optimizer {
         this.maxPriority = -Infinity;
 
         // Tracking the time between optimizations
+        this.waitedFrames = this.waitFrames;
+        this.waitedMillis = this.waitMillis;
         this.elapsedFrames = 0;
         this.elapsedTime = 0;
         this.beginTime = -1;
@@ -183,8 +194,19 @@ class Optimizer {
         // If end is called before begin then skip this iteration
         if (this.beginTime === -1) return;
 
+        // wait the required number of frames between calls
+        const timeFromBegin = window.performance.now() - this.beginTime;
+        if (this.waitedFrames !== 0 && this.waitedMillis !== 0) {
+            this.waitedMillis -= timeFromBegin;
+            this.waitedFrames--;
+
+            this.waitedFrames = Math.max(this.waitedFrames, 0);
+            this.waitedMillis = Math.max(this.waitedMillis, 0);
+            return;
+        }
+
         // increment the time and frames run
-        this.elapsedTime += window.performance.now() - this.beginTime;
+        this.elapsedTime += timeFromBegin;
         this.elapsedFrames++;
 
         // if we've waited for an appropriate amount of time
@@ -260,6 +282,8 @@ class Optimizer {
             this.lastCheck = window.performance.now();
             this.elapsedFrames = 0;
             this.elapsedTime = 0;
+            this.waitedFrames = this.waitFrames;
+            this.waitedMillis = this.waitedMillis;
 
         }
 
@@ -348,6 +372,8 @@ class Optimizer {
 
         this.elapsedFrames = 0;
         this.elapsedTime = 0;
+        this.waitedFrames = this.waitFrames;
+        this.waitedMillis = this.waitedMillis;
         this.beginTime = -1;
         this.lastCheck = -1;
 
