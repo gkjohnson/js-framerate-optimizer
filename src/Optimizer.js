@@ -33,7 +33,7 @@ class SimpleOptimization extends Optimization {
 
             if (this.canIncreaseWork()) {
 
-                this.options.increaseWork(delta);
+                this.increaseWork(delta);
                 return true;
 
             }
