@@ -487,17 +487,18 @@ describe('Optimizer', () => {
                 let incCalled = 0;
                 let decCalled = 0;
 
-                optimizer.addOptimization(delta => {
+                const opt = new SimpleOptimization();
+                opt.increaseWork = () => {
+                    time += 20;
+                    incCalled++;
+                };
 
-                    if (delta > 0) time += 20;
-                    else time -= 1;
+                opt.decreaseWork = () => {
+                    time -= 1;
+                    decCalled++;
+                };
 
-                    if (delta > 0) incCalled++;
-                    else decCalled++;
-
-                    return true;
-
-                });
+                optimizer.addOptimization(opt);
 
                 while (true) {
 
@@ -560,6 +561,40 @@ describe('Optimizer', () => {
         optimizer.dispose();
         optimizer = null;
 
+    });
+
+});
+
+describe('SimpleOptimization', () => {
+
+    let opt = null;
+    beforeEach(() => opt = new SimpleOptimization());
+
+    it('should call increaseWork if delta is positive', () => {
+
+        let calledIncreaseWork = false;
+        let calledCanIncrease = false;
+        opt.increaseWork = () => calledIncreaseWork = true;
+        opt.canIncreaseWork = () => calledCanIncrease = true;
+
+        opt.optimize(1);
+
+        expect(calledIncreaseWork).toBeTruthy();
+        expect(calledCanIncrease).toBeTruthy();
+
+    });
+
+    it('should call decreaseWork if delta is negative', () => {
+
+        let calledDecreaseWork = false;
+        let calledCanDecrease = false;
+        opt.decreaseWork = () => calledDecreaseWork = true;
+        opt.canDecreaseWork = () => calledCanDecrease = true;
+
+        opt.optimize(-1);
+
+        expect(calledDecreaseWork).toBeTruthy();
+        expect(calledCanDecrease).toBeTruthy();
     });
 
 });
