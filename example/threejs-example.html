@@ -16,12 +16,14 @@
         <script src="https://raw.githack.com/mrdoob/three.js/r102/examples/js/postprocessing/ShaderPass.js"></script>
         <script src="https://raw.githack.com/mrdoob/three.js/r102/examples/js/postprocessing/RenderPass.js"></script>
         <script src="https://raw.githack.com/mrdoob/three.js/r102/examples/js/postprocessing/SAOPass.js"></script>
+		<script src="https://raw.githack.com/mrdoob/three.js/r102/examples/js/postprocessing/UnrealBloomPass.js"></script>
 
         <script src="https://raw.githack.com/mrdoob/three.js/r102/examples/js/shaders/CopyShader.js"></script>
         <script src="https://raw.githack.com/mrdoob/three.js/r102/examples/js/shaders/FXAAShader.js"></script>
         <script src="https://raw.githack.com/mrdoob/three.js/r102/examples/js/shaders/SSAOShader.js"></script>
         <script src="https://raw.githack.com/mrdoob/three.js/r102/examples/js/SimplexNoise.js"></script>
         <script src="https://raw.githack.com/mrdoob/three.js/r102/examples/js/shaders/SAOShader.js"></script>
+		<script src="https://raw.githack.com/mrdoob/three.js/r102/examples/js/shaders/LuminosityHighPassShader.js"></script>
 		<script src="https://raw.githack.com/mrdoob/three.js/r102/examples/js/shaders/DepthLimitedBlurShader.js"></script>
         <script src="https://raw.githack.com/mrdoob/three.js/r102/examples/js/shaders/UnpackDepthRGBAShader.js"></script>
 
@@ -152,6 +154,9 @@
                 saoPass.params.saoKernelRadius = 30;
                 saoPass.params.saoScale = 5;
                 composer.addPass(saoPass);
+
+                bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(width, height), 1, 0.4, 0.85);
+                composer.addPass(bloomPass);
 
                 fxaaPass = new THREE.ShaderPass(THREE.FXAAShader);
                 composer.addPass(fxaaPass);
@@ -300,6 +305,19 @@
 
                 }, 4);
 
+
+                optimizer.addOptimization(delta => {
+
+                    var ogEnabled = bloomPass.enabled;
+                    bloomPass.enabled = delta > 0;
+                    if(ogEnabled !== bloomPass.enabled) log(`${bloomPass.enabled ? 'Enabled' : 'Disabled'} Bloom`)
+                    return ogEnabled !== bloomPass.enabled;
+
+                }, 5);
+
+
+                optimizer.addOptimization(createResolutionTweak(1, 3, 0.2), 6)
+
                 optimizer.addOptimization(delta => {
 
                     var ogEnabled = saoPass.enabled;
@@ -307,9 +325,9 @@
                     if(ogEnabled !== saoPass.enabled) log(`${saoPass.enabled ? 'Enabled' : 'Disabled'} SAO`)
                     return ogEnabled !== saoPass.enabled;
 
-                }, 5);
+                }, 7);
 
-                optimizer.addOptimization(createResolutionTweak(1, 3, 0.5), 6);
+                optimizer.addOptimization(createResolutionTweak(3, 4, 0.5), 8);
 
                 // skip the first few frames because they may be expensive when first initializing
                 // the THREE.js state
@@ -355,6 +373,7 @@
 
                 fxaaPass.material.uniforms.resolution.value.x = 1 / width;
                 fxaaPass.material.uniforms.resolution.value.y = 1 / height;
+                bloomPass.resolution.set(width, height);
                 composer.setSize(width, height);
 
             }
