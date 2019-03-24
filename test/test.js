@@ -258,11 +258,11 @@ describe('Optimizer', () => {
 
             it('should optimize to the target framerate', () => {
 
-                const optimizer = new Optimizer({ targetMillis: 1 });
-                let currWait = 16;
+                const optimizer = new Optimizer({ targetMillis: 1, interval: 50 });
+                let currWait = 5;
 
                 optimizer.addOptimization(delta => {
-                    currWait += Math.sign(delta);
+                    currWait += Math.sign(delta) * 0.1;
                     return true;
                 });
 
@@ -276,7 +276,8 @@ describe('Optimizer', () => {
 
                 }
 
-                expect(currWait).toEqual(1);
+                expect(currWait).toBeLessThanOrEqual(1);
+                expect(currWait).toBeGreaterThanOrEqual(0.9);
                 optimizer.dispose();
 
             });

@@ -38,9 +38,9 @@
   },
   "homepage": "https://github.com/gkjohnson/js-framerate-optimizer#readme",
   "devDependencies": {
-    "babel-core": "^6.26.3",
+    "@babel/core": "^7.4.0",
+    "@babel/preset-env": "^7.4.2",
     "babel-jest": "^23.4.2",
-    "babel-preset-latest": "^6.24.1",
     "eslint": "^5.15.3",
     "jest": "^24.5.0",
     "jest-cli": "^24.5.0",
