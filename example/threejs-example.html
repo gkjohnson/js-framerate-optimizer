@@ -3,10 +3,29 @@
     <head>
         <title></title>
 
-        <script src="//rawgit.com/mrdoob/stats.js/master/build/stats.min.js"></script>
-        <script src="//rawgit.com/dataarts/dat.gui/master/build/dat.gui.min.js"></script>
+		<meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 
-        <link href="//rawgit.com/dataarts/dat.gui/master/build/dat.gui.css" rel="stylesheet"/>
+        <script src="https://raw.githack.com/mrdoob/stats.js/master/build/stats.min.js"></script>
+        <script src="https://raw.githack.com/dataarts/dat.gui/master/build/dat.gui.min.js"></script>
+        <script src="https://raw.githack.com/dataarts/dat.gui/master/build/dat.gui.min.js"></script>
+        <script src="https://raw.githack.com/mrdoob/three.js/r102/build/three.min.js"></script>
+        <script src="https://raw.githack.com/mrdoob/three.js/r102/examples/js/controls/OrbitControls.js"></script>
+
+        <script src="https://raw.githack.com/mrdoob/three.js/r102/examples/js/postprocessing/EffectComposer.js"></script>
+        <script src="https://raw.githack.com/mrdoob/three.js/r102/examples/js/postprocessing/ShaderPass.js"></script>
+        <script src="https://raw.githack.com/mrdoob/three.js/r102/examples/js/postprocessing/RenderPass.js"></script>
+        <script src="https://raw.githack.com/mrdoob/three.js/r102/examples/js/postprocessing/SAOPass.js"></script>
+
+        <script src="https://raw.githack.com/mrdoob/three.js/r102/examples/js/shaders/CopyShader.js"></script>
+        <script src="https://raw.githack.com/mrdoob/three.js/r102/examples/js/shaders/FXAAShader.js"></script>
+        <script src="https://raw.githack.com/mrdoob/three.js/r102/examples/js/shaders/SSAOShader.js"></script>
+        <script src="https://raw.githack.com/mrdoob/three.js/r102/examples/js/SimplexNoise.js"></script>
+        <script src="https://raw.githack.com/mrdoob/three.js/r102/examples/js/shaders/SAOShader.js"></script>
+		<script src="https://raw.githack.com/mrdoob/three.js/r102/examples/js/shaders/DepthLimitedBlurShader.js"></script>
+        <script src="https://raw.githack.com/mrdoob/three.js/r102/examples/js/shaders/UnpackDepthRGBAShader.js"></script>
+
+        <link href="https://raw.githack.com/dataarts/dat.gui/master/build/dat.gui.css" rel="stylesheet"/>
 
         <style>
             body {
@@ -14,131 +33,326 @@
                 padding: 0;
                 margin:0;
             }
+
+            #output {
+                color:white;
+                position: absolute;
+                left: 0;
+                top: 45px;
+                padding: 10px;
+                font-family: Arial, Helvetica, sans-serif;
+                font-weight: 100;
+            }
+
         </style>
 
     </head>
     <body>
 
+        <div id="output"></div>
+
         <script type="module">
-            import { Optimizer } from '../Optimizer.js';
-            import * as THREE from '//rawgit.com/mrdoob/three.js/r94/build/three.module.js';
+            import { Optimizer } from '../src/Optimizer.js';
 
             const params = {
-                resolution: 32
+                resolutionRatio: 4,
+                optimizerOptions: {
+                    targetFramerate: 60,
+                    increaseWork: true,
+                    continuallyRefine: false,
+                    interval: 500,
+                    waitMillis: 100
+                }
             }
 
-            // THREE example from http://jsfiddle.net/theo/VsWb9/
-            var camera, scene, renderer, geometry, material, mesh;
-            var rt, rtscene, rtcam;
+            var camera, scene, renderer, geometry, controls, light;
+            var composer, fxaaPass, bloomPass, saoPass;
+            var optimizer, stats, gui;
+            var lowResGeom, hiResGeom, spheres;
 
             init();
+            rebuildOptimizer();
             animate();
+
+            var logs = [];
+            function log(msg) {
+
+                while(logs.length > 10) logs.shift();
+                logs.push(msg);
+
+                document
+                    .getElementById('output')
+                    .innerHTML = logs.slice().reverse().map((l, i) => `<div style="opacity:${(10 - i)/10}">${l}</div>`).join('');
+
+
+            }
 
             function init() {
 
+                var width = window.innerWidth;
+                var height = window.innerHeight;
+
                 scene = new THREE.Scene();
 
-                camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
-                camera.position.z = 500;
+                camera = new THREE.PerspectiveCamera(50, width / height, 1, 10000);
+                camera.position.z = 50;
                 scene.add(camera);
 
-                geometry = new THREE.BoxBufferGeometry(200, 200, 200);
-                material = new THREE.MeshNormalMaterial();
+                light = new THREE.DirectionalLight(0xffffff, 1);
+                light.position.setScalar(10);
+                light.castShadow = true;
+                light.shadow.camera.top = light.shadow.camera.right = 10;
+                light.shadow.camera.bottom = light.shadow.camera.left = -10;
+                scene.add(light);
 
-                mesh = new THREE.Mesh(geometry, material);
-                scene.add(mesh);
+                scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
-                renderer = new THREE.WebGLRenderer();
-                renderer.setSize(window.innerWidth, window.innerHeight);
+                lowResGeom = new THREE.SphereBufferGeometry( 1, 5, 5 );
+                hiResGeom = new THREE.SphereBufferGeometry( 1, 50, 50 );
 
-                document.body.appendChild(renderer.domElement);
+                spheres = [];
+                for(let i = 0; i < 400; i ++) {
 
+                    var color = 0xffffff * Math.random();
+                    var hiResMat = new THREE.MeshStandardMaterial({ color, metalness: 0.25, roughness: 0.5 });
+                    var lowResMat = new THREE.MeshPhongMaterial({ color });
+                    var mesh = new THREE.Mesh(hiResGeom, hiResMat);
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                    mesh.hiResMat = hiResMat;
+                    mesh.lowResMat = lowResMat;
 
-                rt = new THREE.WebGLRenderTarget(256, 256, { });
-                rtscene = new THREE.Scene();
+                    mesh.scale
+                        .setScalar(Math.random() * 1.5 + 0.1);
 
-                var mat = new THREE.MeshBasicMaterial({ map: rt.texture });
-                var quad = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), mat);
+                    mesh.position
+                        .set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5)
+                        .normalize()
+                        .multiplyScalar((Math.random() - 0.5) * 20);
 
-                rtcam = new THREE.OrthographicCamera( - 1, 1, 1, - 1, 0, 1 );
-                rtscene.add(quad);
-
-            }
-
-            function animate() {
-
-                requestAnimationFrame(animate);
-                render();
-
-            }
-
-            function render() {
-
-            }
-
-            // optimize the work time until we reach the target framerate
-            const optimizer = new Optimizer({ continuallyRefine: false, interval: 500, margin: 0.01, increaseWork: true });
-            optimizer.addOptimization((delta, opt) => {
-
-                const ogres = params.resolution;
-
-                if (delta < 0) params.resolution = THREE.Math.floorPowerOfTwo(params.resolution);
-                if (delta > 0) params.resolution = THREE.Math.ceilPowerOfTwo(params.resolution);
-
-                params.resolution = Math.min(params.resolution, renderer.capabilities.maxTextureSize);
-
-                if (params.resolution === ogres) {
-
-                    params.resolution *= 2 ** Math.sign(delta);
-                    params.resolution = Math.min(params.resolution, renderer.capabilities.maxTextureSize);
+                    scene.add(mesh);
+                    spheres.push(mesh);
 
                 }
 
-                gui.updateDisplay();
+                renderer = new THREE.WebGLRenderer();
+                renderer.shadowMap.enabled = true;
+                renderer.setClearColor(0x131619);
+                renderer.setSize(width, height);
 
-                // wait a little bit before resuming so the framerate settles after
-                // large changes
-                opt.enabled = false;
-                setTimeout(() => opt.enabled = true, 2000);
+                controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-                return ogres !== params.resolution;
+                composer = new THREE.EffectComposer(renderer);
+                composer.addPass(new THREE.RenderPass(scene, camera));
 
-            });
+                saoPass = new THREE.SAOPass(scene, camera, false, true);
+                saoPass.params.saoIntensity = 0.001;
+                saoPass.params.saoKernelRadius = 30;
+                saoPass.params.saoScale = 5;
+                composer.addPass(saoPass);
 
-            // skip the first few frames because they may be expensive when first initializing
-            // the THREE.js state
-            setTimeout(() => optimizer.restart(), 1000)
+                fxaaPass = new THREE.ShaderPass(THREE.FXAAShader);
+                composer.addPass(fxaaPass);
 
-            window.optimizer = optimizer;
+                composer.addPass(new THREE.ShaderPass(THREE.CopyShader));
 
-            const stats = new Stats();
-            const gui = new dat.GUI();
-            gui.add(params, 'resolution', 0, renderer.capabilities.maxTextureSize).onChange(() => optimizer.restart());
+                composer.setSize(width,height);
 
-            document.body.appendChild(stats.dom);
+                document.body.appendChild(renderer.domElement);
 
-            // initialize everything which can cause some temporary slowness
-            renderer.render(scene, camera, rt);
-            renderer.render(rtscene, rtcam);
+                stats = new Stats();
+                gui = new dat.GUI();
+                gui.add(params.optimizerOptions, 'targetFramerate').min(5).max(75).onChange(() => updateOptimizerOptions());
+                gui.add(params.optimizerOptions, 'increaseWork').onChange(() => updateOptimizerOptions());
+                gui.add(params.optimizerOptions, 'continuallyRefine').onChange(() => updateOptimizerOptions());
+                gui.add(params.optimizerOptions, 'interval').min(100).max(2000).onChange(() => updateOptimizerOptions());
+
+                document.body.appendChild(stats.dom);
+                window.addEventListener('resize', () => resize());
+
+            }
+
+            function updateOptimizerOptions() {
+
+                Object.assign(optimizer.options, params.optimizerOptions);
+                optimizer.restart();
+
+            }
+
+            function rebuildOptimizer() {
+
+                function createResolutionTweak(min, max, step) {
+
+                    return function(delta, opt) {
+
+                        var changed = false;
+                        if (delta > 0 && params.resolutionRatio < max) {
+
+                            params.resolutionRatio += step;
+                            changed = true;
+                            resize();
+
+                        } else if (delta < 0 && params.resolutionRatio > min) {
+
+                            params.resolutionRatio -= step;
+                            changed = true;
+                            resize();
+
+                        }
+
+                        params.resolutionRatio = Math.round(params.resolutionRatio * 10) / 10;
+
+                        if (changed) log(`Set render target ratio to ${params.resolutionRatio}.`);
+
+                        return changed;
+
+                    }
+
+                }
+
+                // optimize the work time until we reach the target framerate
+                window.optimizer = optimizer = new Optimizer(params.optimizerOptions);
+                optimizer.addOptimization(createResolutionTweak(0.2, 1, 0.2), 0);
+
+                var hidingGeom = false;
+                optimizer.addOptimization(delta => {
+
+                    if (delta < 0 && hidingGeom) return false;
+                    if (delta > 0 && !hidingGeom) return false;
+
+                    for (let i = 0; i < spheres.length / 2; i ++) {
+
+                        spheres[i].visible = !spheres[i].visible;
+
+                    }
+
+                    hidingGeom = !hidingGeom;
+                    log(`${hidingGeom ? 'Hid' : 'Showed'} some geometry.`);
+
+
+                    return true;
+
+                }, 1);
+
+                optimizer.addOptimization(delta => {
+
+                    var og = fxaaPass.enabled;
+                    if (delta < 0) fxaaPass.enabled = false;
+                    if (delta > 0) fxaaPass.enabled = true;
+
+                    if(fxaaPass.enabled !== og) log(`${fxaaPass.enabled ? 'Enabled' : 'Disabled'} FXAA.`);
+
+                    return fxaaPass.enabled !== og;
+
+                }, 2);
+
+                var usingHiResGeom = true;
+                optimizer.addOptimization(delta => {
+
+                    var changed = false;
+                    if (delta > 0 && !usingHiResGeom) {
+
+                        spheres.forEach(c => c.geometry = hiResGeom);
+                        usingHiResGeom = true;
+                        changed = true;
+                        log(`Switched to high resolution geometry.`);
+
+
+                    }
+                    if (delta < 0 && usingHiResGeom) {
+
+                        spheres.forEach(c => c.geometry = lowResGeom);
+                        usingHiResGeom = false;
+                        changed = true;
+                        log(`Switched to low resolution geometry.`);
+
+                    }
+                    return changed;
+
+                }, 3);
+
+                var usingHiResMat = true;
+                optimizer.addOptimization(delta => {
+
+                    var changed = false;
+                    if (delta > 0 && !usingHiResMat) {
+
+                        spheres.forEach(c => c.material = c.hiResMat);
+                        usingHiResMat = true;
+                        changed = true;
+                        log(`Switched to standard shader.`);
+
+                    }
+                    if (delta < 0 && usingHiResMat) {
+
+                        spheres.forEach(c => c.material = c.lowResMat);
+                        usingHiResMat = false;
+                        changed = true;
+                        log(`Switched to phong shader.`);
+
+                    }
+                    return changed;
+
+                }, 4);
+
+                optimizer.addOptimization(delta => {
+
+                    var ogEnabled = saoPass.enabled;
+                    saoPass.enabled = delta > 0;
+                    if(ogEnabled !== saoPass.enabled) log(`${saoPass.enabled ? 'Enabled' : 'Disabled'} SAO`)
+                    return ogEnabled !== saoPass.enabled;
+
+                }, 5);
+
+                optimizer.addOptimization(createResolutionTweak(1, 3, 0.5), 6);
+
+                // skip the first few frames because they may be expensive when first initializing
+                // the THREE.js state
+                setTimeout(() => optimizer.restart(), 1000)
+
+            }
 
             // work loop
-            (function loop(){
+            function animate(){
 
                 stats.update();
                 optimizer.update();
 
-                rt.setSize(params.resolution, params.resolution);
+                composer.passes.forEach(p => p.renderToScreen = false);
+                for(var i = composer.passes.length - 1; i >= 0; i --) {
 
+                    var pass = composer.passes[i];
+                    if (pass.enabled) {
+                        pass.renderToScreen = true;
+                        break;
+                    }
 
-                mesh.rotation.x += 0.01;
-                mesh.rotation.y += 0.02;
+                }
 
-                renderer.render(scene, camera, rt);
-                renderer.render(rtscene, rtcam);
+                composer.render();
 
-                requestAnimationFrame(loop);
+                requestAnimationFrame(animate);
 
-            })();
+            }
+
+            function resize() {
+
+                var pixelRatio = renderer.getPixelRatio();
+                var width = window.innerWidth * pixelRatio;
+                var height = window.innerHeight * pixelRatio;
+
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+                renderer.setSize(width, height);
+
+                width *= params.resolutionRatio;
+                height *= params.resolutionRatio;
+
+                fxaaPass.material.uniforms.resolution.value.x = 1 / width;
+                fxaaPass.material.uniforms.resolution.value.y = 1 / height;
+                composer.setSize(width, height);
+
+            }
 
         </script>
     </body>
