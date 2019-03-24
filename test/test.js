@@ -276,8 +276,8 @@ describe('Optimizer', () => {
 
                 }
 
-                expect(currWait).toBeLessThanOrEqual(1);
-                expect(currWait).toBeGreaterThanOrEqual(0.9);
+                expect(currWait).toBeLessThanOrEqual(1 + 1e-6);
+                expect(currWait).toBeGreaterThanOrEqual(0.9 - 1e-6);
                 optimizer.dispose();
 
             });
