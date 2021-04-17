@@ -37,7 +37,7 @@
 
                 if (this.canIncreaseWork()) {
 
-                    this.options.increaseWork(delta);
+                    this.increaseWork(delta);
                     return true;
 
                 }
@@ -85,7 +85,7 @@
 
                 // how long to wait between capturing frames
                 waitMillis: 0,
-                maxwaitFrames: Infinity,
+                maxWaitFrames: Infinity,
 
                 // how far outside the current framerate must be outside
                 // the target to optimize
@@ -128,12 +128,11 @@
             this.maxPriority = -Infinity;
 
             // Tracking the time between optimizations
-            this.waitedFrames = this.options.maxwaitFrames;
+            this.waitedFrames = this.options.maxWaitFrames;
             this.waitedMillis = this.options.waitMillis;
             this.elapsedFrames = 0;
             this.elapsedTime = 0;
             this.beginTime = -1;
-            this.lastCheck = -1;
 
             // The next optimization to try
             this.currPriority = null;
@@ -173,23 +172,14 @@
 
         }
 
-        // begin the code block to optimize
-        begin() {
-
-            this.beginTime = window.performance.now();
-
-        }
-
-        // end the code block to optimize
-        end() {
+        addSample(sampleTime) {
 
             // if we're not active for any reason, continue
             if (!this._enabled || !this._windowFocused || this.completed) return;
 
             // wait the required number of frames between calls
-            const timeFromBegin = window.performance.now() - this.beginTime;
             if (this.waitedFrames !== 0 && this.waitedMillis !== 0) {
-                this.waitedMillis -= timeFromBegin;
+                this.waitedMillis -= sampleTime;
                 this.waitedFrames--;
 
                 this.waitedFrames = Math.max(this.waitedFrames, 0);
@@ -197,19 +187,12 @@
                 return;
             }
 
-            // If we don't have a last check time, initialize it
-            if (this.lastCheck === -1) this.lastCheck = window.performance.now();
-
-            // If end is called before begin then skip this iteration
-            if (this.beginTime === -1) return;
-
             // increment the time and frames run
-            this.elapsedTime += timeFromBegin;
+            this.elapsedTime += sampleTime;
             this.elapsedFrames++;
 
             // if we've waited for an appropriate amount of time
-            const sinceLastCheck = window.performance.now() - this.lastCheck;
-            if (sinceLastCheck >= this.options.interval || this.elapsedFrames >= this.options.maxFrameSamples) {
+            if (this.elapsedTime >= this.options.interval || this.elapsedFrames >= this.options.maxFrameSamples) {
 
                 // average time per frame and the differences
                 const frameTime = this.elapsedTime / this.elapsedFrames;
@@ -277,13 +260,30 @@
 
                 }
 
-                this.lastCheck = window.performance.now();
                 this.elapsedFrames = 0;
                 this.elapsedTime = 0;
-                this.waitedFrames = this.options.maxwaitFrames;
+                this.waitedFrames = this.options.maxWaitFrames;
                 this.waitedMillis = this.options.waitMillis;
 
             }
+
+        }
+
+        // begin the code block to optimize
+        begin() {
+
+            this.beginTime = window.performance.now();
+
+        }
+
+        // end the code block to optimize
+        end() {
+
+            // If end is called before begin then skip this iteration
+            if (this.beginTime === -1) return;
+
+            const timeFromBegin = window.performance.now() - this.beginTime;
+            this.addSample(timeFromBegin);
 
         }
 
@@ -370,10 +370,9 @@
 
             this.elapsedFrames = 0;
             this.elapsedTime = 0;
-            this.waitedFrames = this.options.maxwaitFrames;
+            this.waitedFrames = this.options.maxWaitFrames;
             this.waitedMillis = this.options.waitMillis;
             this.beginTime = -1;
-            this.lastCheck = -1;
 
         }
 
