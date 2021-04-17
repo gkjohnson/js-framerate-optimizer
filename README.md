@@ -187,6 +187,14 @@ function loop() {
 }
 ```
 
+### .addSample
+
+```js
+addSample( time : Number ) : void
+```
+
+Call instead of `begin`, `end`, or `update` if you'd like to use a separate time-measuring mechanism that cannot be achieved with the aforementioned function, such as when measuring GPU work time with the [WebGL disjoint_timer_query](https://www.khronos.org/registry/webgl/extensions/EXT_disjoint_timer_query_webgl2/).
+
 ### .restart
 
 ```js
