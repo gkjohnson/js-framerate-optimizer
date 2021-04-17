@@ -44,6 +44,37 @@ describe('Optimizer', () => {
 
     });
 
+    describe('addSample', () => {
+
+        it('should work in place of begin / end', () => {
+
+            let called = false;
+            let iterations = 0;
+            optimizer.addOptimization(delta => {
+
+                const expected = 16 - 100;
+                const ratio = 1 - delta / expected;
+                expect(Math.abs(ratio)).toBeLessThan(0.025);
+                called = true;
+                return true;
+
+            });
+
+            while (true) {
+
+                if (called) break;
+
+                optimizer.addSample(100);
+                iterations++;
+
+            }
+
+            expect(iterations).toEqual(5);
+
+        });
+
+    });
+
     describe('begin / end', () => {
 
         it('should call the optimization function if needed', () => {

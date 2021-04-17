@@ -127,7 +127,6 @@ export class Optimizer {
         this.elapsedFrames = 0;
         this.elapsedTime = 0;
         this.beginTime = -1;
-        this.lastCheck = -1;
 
         // The next optimization to try
         this.currPriority = null;
@@ -167,29 +166,14 @@ export class Optimizer {
 
     }
 
-    addSample(time) {
-
-        // TODO
-
-    }
-    
-    // begin the code block to optimize
-    begin() {
-
-        this.beginTime = window.performance.now();
-
-    }
-
-    // end the code block to optimize
-    end() {
+    addSample(sampleTime) {
 
         // if we're not active for any reason, continue
         if (!this._enabled || !this._windowFocused || this.completed) return;
 
         // wait the required number of frames between calls
-        const timeFromBegin = window.performance.now() - this.beginTime;
         if (this.waitedFrames !== 0 && this.waitedMillis !== 0) {
-            this.waitedMillis -= timeFromBegin;
+            this.waitedMillis -= sampleTime;
             this.waitedFrames--;
 
             this.waitedFrames = Math.max(this.waitedFrames, 0);
@@ -197,19 +181,12 @@ export class Optimizer {
             return;
         }
 
-        // If we don't have a last check time, initialize it
-        if (this.lastCheck === -1) this.lastCheck = window.performance.now();
-
-        // If end is called before begin then skip this iteration
-        if (this.beginTime === -1) return;
-
         // increment the time and frames run
-        this.elapsedTime += timeFromBegin;
+        this.elapsedTime += sampleTime;
         this.elapsedFrames++;
 
         // if we've waited for an appropriate amount of time
-        const sinceLastCheck = window.performance.now() - this.lastCheck;
-        if (sinceLastCheck >= this.options.interval || this.elapsedFrames >= this.options.maxFrameSamples) {
+        if (this.elapsedTime >= this.options.interval || this.elapsedFrames >= this.options.maxFrameSamples) {
 
             // average time per frame and the differences
             const frameTime = this.elapsedTime / this.elapsedFrames;
@@ -277,13 +254,30 @@ export class Optimizer {
 
             }
 
-            this.lastCheck = window.performance.now();
             this.elapsedFrames = 0;
             this.elapsedTime = 0;
             this.waitedFrames = this.options.maxWaitFrames;
             this.waitedMillis = this.options.waitMillis;
 
         }
+
+    }
+
+    // begin the code block to optimize
+    begin() {
+
+        this.beginTime = window.performance.now();
+
+    }
+
+    // end the code block to optimize
+    end() {
+
+        // If end is called before begin then skip this iteration
+        if (this.beginTime === -1) return;
+
+        const timeFromBegin = window.performance.now() - this.beginTime;
+        this.addSample(timeFromBegin);
 
     }
 
@@ -373,7 +367,6 @@ export class Optimizer {
         this.waitedFrames = this.options.maxWaitFrames;
         this.waitedMillis = this.options.waitMillis;
         this.beginTime = -1;
-        this.lastCheck = -1;
 
     }
 
