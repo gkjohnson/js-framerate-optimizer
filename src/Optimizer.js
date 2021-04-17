@@ -1,5 +1,4 @@
-export
-class Optimization {
+export class Optimization {
 
     optimize(delta, optimizer) {
 
@@ -9,8 +8,7 @@ class Optimization {
 
 }
 
-export
-class SimpleOptimization extends Optimization {
+export class SimpleOptimization extends Optimization {
 
     canIncreaseWork() { return true; }
     increaseWork(delta) { }
@@ -46,8 +44,7 @@ class SimpleOptimization extends Optimization {
 
 }
 
-export
-class Optimizer {
+export class Optimizer {
 
     get enabled() {
 
@@ -170,6 +167,12 @@ class Optimizer {
 
     }
 
+    addSample(time) {
+
+        // TODO
+
+    }
+    
     // begin the code block to optimize
     begin() {
 
