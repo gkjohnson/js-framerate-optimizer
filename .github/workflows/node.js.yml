@@ -9,10 +9,6 @@ on:
   pull_request:
     branches: [ master ]
 
-defaults:
-  run:
-    working-directory: ./javascript
-
 jobs:
   build:
 
