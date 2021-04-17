@@ -57,7 +57,7 @@ enabled = true : Boolean
 
 Getter and setter for enabling or disabling the optimizer. Elapsed time is reset on reenable.
 
-### completed
+### .completed
 
 ```js
 completed : Boolean
@@ -66,7 +66,7 @@ completed : Boolean
 Whether or not the optimizer has stopped iterating and sampling the framerate.
 
 
-### constructor
+### .constructor
 
 ```js
 constructor( options : Object )
