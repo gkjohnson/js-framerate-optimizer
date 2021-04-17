@@ -230,8 +230,8 @@ Functions that should return true if the optimizer _can_ increase or decrease wo
 ### .increaseWork / .decreaseWork
 
 ```js
-increaesWork() : void
-decreaseWork() : void
+increaesWork( delta : Number ) : void
+decreaseWork( delta : Number ) : void
 ```
 
 Functions to increase or decrease work and optimize the frame if needed. These are called if the associated `canIncreaseWork` or `canDecreaseWork` return true.
