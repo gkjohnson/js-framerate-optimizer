@@ -1,8 +1,7 @@
 # js-framerate-optimizer
 
 [![npm version](https://img.shields.io/npm/v/framerate-optimizer.svg?style=flat-square)](https://www.npmjs.com/package/framerate-optimizer)
-[![build](https://img.shields.io/github/workflow/status/gkjohnson/js-framerate-optimizer/Node.js%20CI?style=flat-square&label=build)](https://github.com/gkjohnson/js-framerate-optimizer/actions)
-[![lgtm code quality](https://img.shields.io/lgtm/grade/javascript/g/gkjohnson/js-framerate-optimizer.svg?style=flat-square&label=code-quality)](https://lgtm.com/projects/g/gkjohnson/js-framerate-optimizer/)
+[![build](https://img.shields.io/github/actions/workflow/status/gkjohnson/js-framerate-optimizer/node.js.yml?branch=master&style=flat-square&label=build)](https://github.com/gkjohnson/js-framerate-optimizer/actions)
 
 Library for tracking and iteratively improving framerate over time inspired by the [Babylon.SceneOptimizer](https://doc.babylonjs.com/how_to/how_to_use_sceneoptimizer).
 
