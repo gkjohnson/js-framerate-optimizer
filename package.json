@@ -42,8 +42,8 @@
     "@babel/preset-env": "^7.11.5",
     "babel-jest": "^25.4.0",
     "eslint": "^5.15.3",
-    "jest": "^25.4.0",
-    "jest-cli": "^25.4.0",
+    "jest": "^29.6.1",
+    "jest-cli": "^29.6.1",
     "opn-cli": "^3.1.0",
     "rollup": "^0.66.6"
   }
